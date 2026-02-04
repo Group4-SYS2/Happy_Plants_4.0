@@ -6,6 +6,16 @@ from supabase import create_client, Client
 import psycopg2
 import configparser
 
+global supabaseClient
+
+def getAllUsers():
+    supabaseClient = initialize()
+    response = (supabaseClient.table("users")
+                .select("*")
+                .execute())
+
+    print("response: ", response)
+
 def registerUser(email, password):
     conn = connect()
     cursor = conn.cursor()
@@ -41,7 +51,7 @@ def loginUser(email, password):
     disconnect(conn)
 
     if data:
-        return {"status": "success", "user_id": data[0], "role": data[1], "userId" : data[2]}
+        return {"status": "success"}
     else:
         return {"status": "error", "message": "Incorrect username or password"}
 
@@ -69,3 +79,9 @@ def disconnect(connection):
     connection.cursor().close()
     connection.close()
     print("Connection closed")
+
+def initialize():
+    supabaseClient : Client = create_client("https://fnugbmdbadpadwiqqjii.supabase.co", "sb_publishable_LMjYHLr3HcYeZK9inOObWQ_5i7V4gep")
+    return supabaseClient
+
+initialize()
