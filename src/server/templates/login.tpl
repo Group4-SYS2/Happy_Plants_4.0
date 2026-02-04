@@ -110,6 +110,16 @@
             transform: translateY(3px);
         }
 
+        .error-message {
+            color: #d32f2f;
+            background-color: #ffcdd2;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: bold;
+        }
+
         .register-link {
             display: block;
             margin-top: 25px;
@@ -138,9 +148,11 @@
 
         <h2>Login</h2>
 
-        <form action="http://127.0.0.1:8000/login" method="POST">
-            <input type="email" name="email" placeholder="E-mail" value="admin@test.com">
-            <input type="password" name="password" placeholder="Password" value="123">
+        <div id="error" class="error-message"></div>
+
+        <form id="loginForm" action="http://127.0.0.1:8000/login" method="POST">
+            <input type="email" name="email" placeholder="E-mail" value="test@mail.com">
+            <input type="password" name="password" placeholder="Password" value="123456">
 
             <button type="submit">Log in</button>
         </form>
@@ -148,6 +160,23 @@
         <a href="http://127.0.0.1:8000/register" class="register-link">No account? Register here!</a>
     </div>
 </div>
+
+<script>
+    const errorDiv = document.getElementById('error');
+
+    if ('{{errorCode}}' !== '') {
+        errorDiv.innerHTML = '{{errorCode}}';
+        errorDiv.style.display = 'block';
+    }
+
+    if ('{{successCode}}' !== '') {
+        errorDiv.style.color = "#2e7d32";
+        errorDiv.style.backgroundColor = "#c8e6c9";
+        errorDiv.innerHTML = '{{successCode}}';
+        errorDiv.style.display = 'block';
+    }
+
+</script>
 
 </body>
 </html>

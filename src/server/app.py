@@ -1,43 +1,64 @@
 from fastapi.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
+from starlette.routing import RedirectResponse
 
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, status
 
-from database.databaseConnection import loginUser, registerUser, getAllUsers
+from database.databaseConnection import loginUser, registerUser, getAllUsers, initialize, getCurrentUser, signOutUser
+
+# Starts the fastapi RESTful api
 app = FastAPI()
 
+# Mounts the app to a path, reason unclear
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Define where the templates are stored
 templates = Jinja2Templates(directory="templates")
 
-@app.get("/login")
-async def home(request: Request):
-    getAllUsers()
-    return templates.TemplateResponse("login.tpl", {"request": request})
+# Starts the database client
+initialize()
 
+@app.get("/home")
+async def home(request: Request):
+    current_user = getCurrentUser()
+
+    if current_user is not None:
+        print("found user")
+        return templates.TemplateResponse("main.tpl", {"request": request, "email": current_user.user.email})
+    else:
+        print("no user found")
+        return templates.TemplateResponse("login.tpl", {"request": request})
+
+@app.get("/logout")
+async def logout(request: Request):
+    signOutUser()
+
+    ## Redirects user to the home page, status_code is 303 because that makes the redirect request a GET request
+    return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
 @app.post("/login")
 async def login(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
-    result = loginUser(email, password)
-    print(result)
+    response = loginUser(email, password)
+    print(response)
 
-    if result["status"] == "success":
-        return templates.TemplateResponse("main.tpl", {"request": request, "email": email})
+    if response == "success":
+        return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
     else:
-        return templates.TemplateResponse("login.tpl", {"request": request})
+        return templates.TemplateResponse("login.tpl", {"request": request, "errorCode": response})
 
 @app.get("/register")
-async def register(request: Request):
+async def registerPage(request: Request):
     return templates.TemplateResponse("register.tpl", {"request": request})
 
 @app.post("/register")
-async def login(request: Request, email: str = Form(), password: str = Form()):
+async def register(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
-    result = registerUser(email, password)
+    response = registerUser(email, password)
 
-    if result["status"] == "success":
-        return templates.TemplateResponse("login.tpl", {"request": request})
+    if response == "success":
+        return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
     else:
-        print(result["message"])
-        return templates.TemplateResponse("register.tpl", {"request": request})
+        print(response)
+        return templates.TemplateResponse("register.tpl", {"request": request, "errorCode": response})
 
 

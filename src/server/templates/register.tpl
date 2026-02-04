@@ -142,7 +142,7 @@
 
         <h2>Register</h2>
 
-        <div id="error" class="error-message">Passwords do not match!</div>
+        <div id="error" class="error-message"></div>
 
         <form id="registerForm" action="http://127.0.0.1:8000/register" method="POST">
             <input type="email" name="email" placeholder="E-mail" required value="test@mail.com">
@@ -152,7 +152,7 @@
             <button type="submit">Sign Up</button>
         </form>
 
-        <a href="http://127.0.0.1:8000/login" class="login-link">Already have an account? Login!</a>
+        <a href="http://127.0.0.1:8000/home" class="login-link">Already have an account? Login!</a>
     </div>
 </div>
 
@@ -165,11 +165,23 @@
     form.addEventListener('submit', function(event) {
         if (password.value !== confirmPassword.value) {
             event.preventDefault();
+            errorDiv.innerHTML = "Passwords do not match!"
             errorDiv.style.display = 'block';
-        } else {
+        }
+        else if(password.value.length < 6) {
+            event.preventDefault();
+            errorDiv.innerHTML = 'Password must be at least 6 characters long!';
+            errorDiv.style.display = 'block';
+        }
+        else {
             errorDiv.style.display = 'none';
         }
     });
+
+    if ('{{errorCode}}' !== '') {
+        errorDiv.innerHTML = '{{errorCode}}';
+        errorDiv.style.display = 'block';
+    }
 </script>
 
 </body>
