@@ -47,6 +47,24 @@
             color: white;
         }
 
+        /* Sign Out Button */
+        .sign-out-btn {
+            padding: 15px 20px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            color: #333;
+            text-decoration: none;
+            border-top: 2px solid var(--sidebar-border);
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: background 0.3s;
+        }
+
+        .sign-out-btn:hover {
+            background-color: #d32f2f;
+            color: white;
+        }
+
         /* Profile Block */
         .user-profile {
             display: flex;
@@ -132,6 +150,7 @@
     <a href="#" class="nav-item">My account</a>
     <div style="flex-grow: 1; border-right: none;"></div>
 
+    <a href="/logout" class="sign-out-btn">Sign out</a>
     <div class="user-profile">
         <img src="https://via.placeholder.com/50" class="profile-pic">
         <span class="user-email">{{email}}</span>

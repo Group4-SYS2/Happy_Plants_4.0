@@ -1,87 +1,57 @@
-import asyncio
-from sys import excepthook
-
+import supabase
 from supabase import create_client, Client
-
-import psycopg2
-import configparser
 
 global supabaseClient
 
 def getAllUsers():
-    supabaseClient = initialize()
-    response = (supabaseClient.table("users")
-                .select("*")
-                .execute())
+    try:
+        response = (supabaseClient.table("users")
+                    .select("*")
+                    .execute())
 
-    print("response: ", response)
+        return response
+
+    except supabaseClient.AuthApiError as e:
+        return e.code
 
 def registerUser(email, password):
-    conn = connect()
-    cursor = conn.cursor()
-
-    query = "INSERT INTO users (email, password, role) VALUES (%s, %s, 'user')"
-
     try:
-        cursor.execute(query, (email, password))
+        response = supabaseClient.auth.sign_up(
+            {
+                "email": email,
+                "password": password,
+            }
+        )
+        return "success"
 
-    except Exception as error:
-        disconnect(conn)
-        return {"status" : "error", "message" : str(error)}
-
-
-    else:
-        if cursor.rowcount != 0:
-            disconnect(conn)
-            return {"status" : "success"}
-        else:
-            disconnect(conn)
-            return {"status" : "error", "message" : "Error adding user"}
+    except supabase.AuthApiError as e:
+        return e.code
 
 def loginUser(email, password):
-    conn = connect()
-    cursor = conn.cursor()
-
-    query = "SELECT email, role, user_id FROM users WHERE email = %s AND password = %s"
-
-    cursor.execute(query, (email, password))
-
-    data = cursor.fetchone()
-
-    disconnect(conn)
-
-    if data:
-        return {"status": "success"}
-    else:
-        return {"status": "error", "message": "Incorrect username or password"}
-
-
-def connect():
-    print("Connecting to PostgreSQL database...")
     try:
-        connection = psycopg2.connect(
-            user="postgres.fnugbmdbadpadwiqqjii",
-            password="happyplantsgrupp4",
-            host="aws-1-eu-west-1.pooler.supabase.com",
-            port=5432,
-            dbname="postgres"
+        response = supabaseClient.auth.sign_in_with_password(
+            {
+                "email": email,
+                "password": password,
+            }
         )
+        return "success"
 
-        print("Connection successful!")
+    except supabase.AuthApiError as e:
+        return e.code
 
-    except Exception as e:
-        print("Error establishing connection")
-        print(e)
+def getCurrentUser():
+    return supabaseClient.auth.get_user()
 
-    return connection
-
-def disconnect(connection):
-    connection.cursor().close()
-    connection.close()
-    print("Connection closed")
+def signOutUser():
+    try:
+        response = supabaseClient.auth.sign_out()
+        return "success"
+    except supabase.AuthApiError as e:
+        return e.code
 
 def initialize():
-    supabaseClient : Client = create_client("https://fnugbmdbadpadwiqqjii.supabase.co", "sb_publishable_LMjYHLr3HcYeZK9inOObWQ_5i7V4gep")
+    global supabaseClient
+    supabaseClient = create_client("https://fnugbmdbadpadwiqqjii.supabase.co", "sb_publishable_LMjYHLr3HcYeZK9inOObWQ_5i7V4gep")
+    print("Connection established!")
     return supabaseClient
-
-initialize()
