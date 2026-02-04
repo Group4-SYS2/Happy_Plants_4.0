@@ -3,151 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Happy Plants - Login</title>
+    <title>My Happy Plants - Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --bg-green: #9cd49c;
+            --sidebar-border: #333;
+            --accent-green: #7cb342;
+            --glass-white: rgba(255, 255, 255, 0.2);
+        }
+
         body {
-            background-color: #9cd49c; /* Den gröna bakgrundsfärgen */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            background-color: var(--bg-green);
             margin: 0;
+            display: flex;
+            height: 100vh;
             font-family: 'Nunito', sans-serif;
+            color: #333;
         }
 
-        .login-container {
-            text-align: center;
-            width: 100%;
-            max-width: 500px;
-            position: relative;
+        /* Side Navigation */
+        nav {
+            width: 280px;
+            background-color: #c5e1c5; /* Slightly lighter green for sidebar */
+            border-right: 2px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Logotyp sektion */
-        .logo-area {
+        .nav-item {
+            padding: 30px 20px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.8rem;
+            color: #333;
+            text-decoration: none;
+            border-bottom: 2px solid var(--sidebar-border);
+            transition: background 0.3s;
+        }
+
+        .nav-item:hover {
+            background-color: var(--accent-green);
+            color: white;
+        }
+
+        /* Profile Block */
+        .user-profile {
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
+            padding: 15px;
+            border-top: 2px solid var(--sidebar-border);
+            background-color: rgba(255, 255, 255, 0.1);
+            gap: 12px;
         }
 
-        .logo-circle {
-            width: 80px;
-            height: 80px;
-            background: #b8e2b8;
+        .profile-pic {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            border: 4px dashed #4e944e; /* Simulerar den ritade cirkeln */
+            border: 2px solid var(--sidebar-border);
+            object-fit: cover;
+            background-color: white;
+        }
+
+        .user-email {
+            font-size: 0.9rem;
+            word-break: break-all;
+            font-weight: bold;
+        }
+
+        /* Main Content Area */
+        main {
+            flex-grow: 1;
+            padding: 40px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            font-size: 40px;
-            margin-right: 15px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-badge {
+            display: inline-block;
+            background-color: var(--accent-green);
+            padding: 5px 20px;
+            border-radius: 10px;
         }
 
         h1 {
             color: white;
             font-family: 'Fredoka One', cursive;
-            font-size: 2.5rem;
+            font-size: 3rem;
             margin: 0;
-            line-height: 1;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* Inloggningsrutan */
-        .login-box {
-            background-color: rgba(255, 255, 255, 0.2); /* Transparent grönaktig vit */
-            border: 2px solid #333;
-            border-radius: 5px;
-            padding: 40px 30px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Växterna på hörnen */
-        .plant-left, .plant-right {
-            position: absolute;
-            font-size: 50px;
-            z-index: 10;
-            top: -40px;
-        }
-        .plant-left { left: -20px; }
-        .plant-right { right: -20px; }
-
-        h2 {
-            color: white;
-            font-size: 2.5rem;
-            margin-top: 0;
-            margin-bottom: 30px;
-            font-family: 'Fredoka One', cursive;
-        }
-
-        input[type="email"], input[type="password"] {
+        /* Content Box from your drawing */
+        .content-card {
+            background-color: var(--glass-white);
+            border: 2px solid var(--sidebar-border);
+            border-radius: 40px; /* Rounded corners like your drawing */
+            padding: 40px;
+            max-width: 600px;
             width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 2px solid #4da3ff;
-            background-color: #e8f5e9;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-
-        button {
-            background-color: #7cb342;
-            color: #1a3300;
-            border: 1.5px solid #558b2f;
-            padding: 10px 40px;
+            position: relative;
+            line-height: 1.6;
             font-size: 1.1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 4px #558b2f;
-            font-weight: bold;
-            transition: all 0.2s;
+            color: #1a3300;
         }
 
-        button:active {
-            box-shadow: 0 1px #558b2f;
-            transform: translateY(3px);
-        }
-
-        .register-link {
-            display: block;
-            margin-top: 25px;
-            color: #0099cc;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1rem;
-        }
-
-        .register-link:hover {
-            text-decoration: underline;
+        .plant-decoration {
+            position: absolute;
+            font-size: 40px;
+            bottom: -20px;
+            right: 20px;
         }
     </style>
 </head>
 <body>
 
-<div class="login-container">
-    <div class="logo-area">
-        <div class="logo-circle">🪴</div>
-        <h1>My Happy<br>Plants</h1>
+<nav>
+    <a href="#" class="nav-item">Home</a>
+    <a href="#" class="nav-item">My plants</a>
+    <a href="#" class="nav-item">Add a plant</a>
+    <a href="#" class="nav-item">My account</a>
+    <div style="flex-grow: 1; border-right: none;"></div>
+
+    <div class="user-profile">
+        <img src="https://via.placeholder.com/50" class="profile-pic">
+        <span class="user-email">{{email}}</span>
     </div>
+</nav>
 
-    <div class="login-box">
-        <div class="plant-left">🪴</div>
-        <div class="plant-right">🪴</div>
+<main>
+    <header>
+        <div class="logo-badge">
+            <h1>My Happy Plants</h1>
+        </div>
+    </header>
 
-        <h2>Login</h2>
+    <section class="content-card">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vestibulum ac ante at semper.
+        Vestibulum porttitor tristique sagittis. Curabitur varius pulvinar ipsum at pellentesque.
+        Vivamus tristique hendrerit est in iaculis. Curabitur at maximus lectus. Ut quis arcu magna.
+        Sed ornare, lacus placerat efficitur finibus, felis eros vestibulum.
 
-        <form action="http://127.0.0.1:8000/login" method="POST">
-            <input type="email" name="email" placeholder="E-mail">
-            <input type="password" name="password" placeholder="Lösenord">
-
-            <button type="submit">Log in</button>
-        </form>
-
-        <a href="#" class="register-link">No account? Register here!</a>
-    </div>
-</div>
+        <div class="plant-decoration">🪴</div>
+    </section>
+</main>
 
 </body>
 </html>

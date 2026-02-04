@@ -3,6 +3,8 @@ from starlette.templating import Jinja2Templates
 
 from fastapi import FastAPI, Request, Form
 
+from database.databaseConnection import loginUser, registerUser
+
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -10,71 +12,32 @@ templates = Jinja2Templates(directory="templates")
 
 from fastapi.responses import RedirectResponse
 
-
 @app.get("/login")
 async def home(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse("login.tpl", {"request": request})
 
 @app.post("/login")
 async def login(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
-@app.get("/callback")
-async def loginSpotify(request: Request):
-    code = request.query_params.get("code")
+    result = loginUser(email, password)
+    print(result)
 
-    accessToken = await getAccessToken(code)
+    if result["status"] == "success":
+        return templates.TemplateResponse("main.tpl", {"request": request, "email": email})
 
-    response = RedirectResponse(url="/")
-    response.set_cookie(
-        key="accessToken",
-        value=accessToken,
-        samesite="lax",
-        max_age=3600
-    )
-    return response
+@app.get("/register")
+async def register(request: Request):
+    return templates.TemplateResponse("register.tpl", {"request": request})
 
+@app.post("/register")
+async def login(request: Request, email: str = Form(), password: str = Form()):
+    print(email, password)
+    result = registerUser(email, password)
 
-@app.get("/")
-async def index(request: Request):
-    access_token = request.cookies.get("accessToken")
-    spotify_logged_in = access_token is not None
-
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "spotify_logged_in": spotify_logged_in
-        }
-    )
-
-
-@app.post("/search")
-async def getTrip(request: Request, fromStop: str = Form(), toStop: str = Form(), genre: str = Form(),
-                  contentType: str = Form()):
-    trip = await trafikLab.findTrip(fromStop, toStop)
-    transfer_details = trafikLab.get_transfer_details(trip)
-
-    totalSeconds = trip.totalSeconds * 1000
-    totalTime = trip.totalTime
-
-    access_token = request.cookies.get("accessToken")
-    print("RETRIEVED ACCESS TOKEN FROM COOKIES " + access_token)
-
-    playList = await fillPlaylist(genre, totalSeconds, access_token, fromStop, toStop)
-
-    playlistUrl = playList['url']
-    playlistImage = playList['image']
-
-    trip.playlistUrl = playlistUrl
-    trip.playlistImage = playlistImage
-
-    if contentType == "application/json":
-        return jsonpickle.encode(trip)
-
+    if result["status"] == "success":
+        return templates.TemplateResponse("login.tpl", {"request": request})
     else:
-        return templates.TemplateResponse('index_generated.tpl',
-                                          context={'request' : request,
-                                                   'playlistUrl': playlistUrl,
-                                                   'playlistImage': playlistImage,
-                                                   'trip': trip,
-                                                   'transfers': transfer_details})
+        print(result["message"])
+        return templates.TemplateResponse("register.tpl", {"request": request})
+
+
