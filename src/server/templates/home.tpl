@@ -26,7 +26,7 @@
         /* Side Navigation */
         nav {
             width: 280px;
-            background-color: #c5e1c5; /* Slightly lighter green for sidebar */
+            background-color: #c5e1c5;
             border-right: 2px solid var(--sidebar-border);
             display: flex;
             flex-direction: column;
@@ -42,12 +42,11 @@
             transition: background 0.3s;
         }
 
-        .nav-item:hover {
+        .nav-item:hover, .nav-item.active {
             background-color: var(--accent-green);
             color: white;
         }
 
-        /* Sign Out Button */
         .sign-out-btn {
             padding: 15px 20px;
             font-family: 'Fredoka One', cursive;
@@ -65,7 +64,6 @@
             color: white;
         }
 
-        /* Profile Block */
         .user-profile {
             display: flex;
             align-items: center;
@@ -90,7 +88,6 @@
             font-weight: bold;
         }
 
-        /* Main Content Area */
         main {
             flex-grow: 1;
             padding: 40px;
@@ -119,18 +116,30 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* Content Box from your drawing */
+        /* Content Card Styling */
         .content-card {
             background-color: var(--glass-white);
             border: 2px solid var(--sidebar-border);
-            border-radius: 40px; /* Rounded corners like your drawing */
-            padding: 40px;
-            max-width: 600px;
+            border-radius: 40px;
+            padding: 40px 50px;
+            max-width: 650px;
             width: 100%;
             position: relative;
-            line-height: 1.6;
+            line-height: 1.7;
             font-size: 1.1rem;
             color: #1a3300;
+        }
+
+        .content-card h2 {
+            font-family: 'Fredoka One', cursive;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #2e7d32;
+            font-size: 1.8rem;
+        }
+
+        .content-card p {
+            margin-bottom: 20px;
         }
 
         .plant-decoration {
@@ -144,11 +153,11 @@
 <body>
 
 <nav>
-    <a href="#" class="nav-item">Home</a>
+    <a href="#" class="nav-item active">Home</a>
     <a href="/myPlants" class="nav-item">My plants</a>
     <a href="#" class="nav-item">Add a plant</a>
     <a href="/account" class="nav-item">My account</a>
-    <div style="flex-grow: 1; border-right: none;"></div>
+    <div style="flex-grow: 1;"></div>
 
     <a href="/logout" class="sign-out-btn">Sign out</a>
     <div class="user-profile">
@@ -165,10 +174,15 @@
     </header>
 
     <section class="content-card">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vestibulum ac ante at semper.
-        Vestibulum porttitor tristique sagittis. Curabitur varius pulvinar ipsum at pellentesque.
-        Vivamus tristique hendrerit est in iaculis. Curabitur at maximus lectus. Ut quis arcu magna.
-        Sed ornare, lacus placerat efficitur finibus, felis eros vestibulum.
+        <h2>About the Project</h2>
+
+        <p>My Happy Plants is an website designed to help users care for their indoor plants while providing them with information about those plants.</p>
+
+        <p>My Happy Plants utilizes information retrieved from Trefle.io, which was an open and free API offering data on over one million plant species and hybrids.</p>
+
+        <p>My Happy Plants features a colorful graphical user interface developed in JavaFX with illustrated plant imagery, and allows users to search through tens of thousands of plants, name them, and add them to their personal library.</p>
+
+        <p>My Happy Plants also reminds the user when it is time to water, based on calculations done behind the scene.</p>
 
         <div class="plant-decoration">🪴</div>
     </section>

@@ -57,6 +57,7 @@
             border-top: 2px solid var(--sidebar-border);
             text-align: center;
             background-color: rgba(255, 255, 255, 0.1);
+            transition: background 0.3s;
         }
 
         .user-profile {
@@ -157,6 +158,11 @@
         .btn-action:active {
             box-shadow: 0 1px #558b2f;
             transform: translateY(3px);
+        }
+
+        .sign-out-btn:hover {
+            background-color: #d32f2f;
+            color: white;
         }
 
         .plant-decoration {
@@ -277,13 +283,25 @@
             return;
         }
 
-        // Logic for calling your FastAPI endpoint would go here
-        console.log("Sending new password to server...");
-        fetch("/")
+        try {
+            const response = await fetch('http://127.0.0.1:8000/account/change_password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // We wrap the password in an object to match standard JSON structures
+                body: JSON.stringify({ "new_password": newPassword })
+            });
 
-        // For now, just close the modal
-        alert("Password change request sent!");
-        closeModal();
+            if (response.ok) {
+                alert("Success! Your password has been updated.");
+                closeModal();
+            } else {
+                const errorData = await response.json();
+                alert("Error: " + (errorData.detail || "Could not update password."));
+            }
+        } catch (error) {
+            console.error('Network error:', error);
+            alert("Network error. Please check if the server is running.");
+        }
     }
 </script>
 </html>

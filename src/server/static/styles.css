@@ -1,239 +1,197 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Färgerna justeras här via root */
 :root {
-    --bg-main: #083409; /* Mörkgrön */
-    --bg-light: #B5B5B5; /* Ljusgrå */
-    --text-muted: #535353; /* Mörkgrå */
-    --accent: #1ED760; /* Spotify-grön */
-
-    /* Textfärger enl. WCAG */
-    --text-on-dark: #ffffff; /* Text på mörkgrönt */
-    --text-on-light: #084309; /* Text på ljusa ytor */
-
-    --surface: #ffffff;
-    --surface-soft: rgba(181, 181, 181, 0.25);
+    --bg-green: #9cd49c;
+    --sidebar-border: #333;
+    --accent-green: #7cb342;
+    --glass-white: rgba(255, 255, 255, 0.2);
+    --list-bg: #e8f5e9;
+    --list-stripe: #dcedc8;
+    --input-bg: #e8f5e9;
 }
 
 body {
-    background-color: var(--bg-main);
-    color: var(--text-on-dark);
+    background-color: var(--bg-green);
     margin: 0;
-    line-height: 1.4;
+    display: flex;
+    height: 100vh;
+    font-family: 'Nunito', sans-serif;
+    color: #333;
 }
 
-/* Header */
-
-.site-header {
-    background-color: var(--bg-main);
-    padding: 2rem 3rem 1rem;
-}
-
-.site-header button {
-    padding: 0.75rem 1.25rem;
-    border-radius: 0.75rem;
-    border: 2px solid var(--accent);
-    background-color: transparent;
-    color: var(--accent);
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.site-header button:hover {
-    filter: brightness(1.1);
-}
-
-.logo-title {
-    font-size: clamp(3rem, 6vw, 5rem);
-    font-weight: 800;
-    letter-spacing: 0.15em;
-    color: var(--accent);
-}
-
-/* Main */
-
-.site-main {
-    padding: 2rem 3rem 5rem;
-}
-
-.main-layout {
-    display: grid;
-    grid-template-columns: 1.4fr 1.2fr 0.8fr;
-    gap: 3rem;
-    align-items: start;
-}
-
-/* Form + spellista (vänster) */
-
-.search-section {
-    display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    gap: 2rem;
-}
-
-.trip-form {
-    max-width: 450px;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    font-size: 1.3rem;
-    margin-bottom: 0.5rem;
-    color: var(--text-on-dark);
-}
-
-.form-group select {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    border-radius: 0.5rem;
-    border: 2px solid transparent;
-    background-color: var(--surface);
-    color: var(--text-on-light);
-    font-size: 1rem;
-}
-
-.form-group select:focus-visible {
-    border-color: var(--accent);
-}
-
-.btn-search {
-    display: inline-block;
-    margin-top: 0.5rem;
-    padding: 0.9rem 2.5rem;
-    border: none;
-    border-radius: 0.75rem;
-    background-color: var(--accent);
-    color: var(--bg-main);
-    font-size: 1.2rem;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-.btn-search:hover {
-    filter: brightness(1.05);
-}
-
-.playlist-section {
+/* Sidebar Navigation */
+nav {
+    width: 280px;
+    background-color: #c5e1c5;
+    border-right: 2px solid var(--sidebar-border);
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: 1.5rem;
 }
 
-.playlist-box {
-    width: 100%;
-    aspect-ratio: 4 / 3;
-    background-color: var(--surface-soft);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
-    border-radius: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.playlist-placeholder {
-    color: var(--text-on-dark);
-    text-align: center;
-    font-size: 1.1rem;
-}
-
-.btn-play-now {
-    display: block;
-    padding: 0.9rem 2.5rem;
-    border-radius: 0.75rem;
-    background-color: transparent;
-    border: 2px solid #ffffff;
-    color: #ffffff;
-    font-size: 1.3rem;
-    font-weight: 700;
-    text-align: center;
-    text-decoration: none;
-}
-
-.btn-play-now:hover {
-    filter: brightness(1.1);
-}
-
-/* Aside: sparade spellistor (höger) */
-
-.playlist-aside {
-    background-color: var(--bg-light);
-    color: var(--text-on-light);
-    padding: 1.5rem 1.5rem 2rem;
-    text-align: left;
-    align-self: stretch;
-    height: 100%;
-    border-radius: 0.75rem;
-}
-
-.aside-title {
-    text-align: center;
+.nav-item {
+    padding: 30px 20px;
+    font-family: 'Fredoka One', cursive;
     font-size: 1.8rem;
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
-    color: var(--text-on-light);
+    color: #333;
+    text-decoration: none;
+    border-bottom: 2px solid var(--sidebar-border);
+    transition: background 0.3s;
 }
 
-.playlist-list {
-    list-style: none;
-    margin-top: 1rem;
+.nav-item:hover, .nav-item.active {
+    background-color: var(--accent-green);
+    color: white;
 }
 
-.playlist-item {
-    font-size: 0.95rem;
-    color: var(--text-on-light);
+.sign-out-btn {
+    padding: 15px 20px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    color: #333;
+    text-decoration: none;
+    border-top: 2px solid var(--sidebar-border);
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: background 0.3s;
 }
 
-.playlist-item--empty {
-    opacity: 0.9;
-    color: var(--text-muted);
+.sign-out-btn:hover {
+    background-color: #d32f2f;
+    color: white;
 }
 
-/* Footer */
-
-.site-footer {
-    background-color: var(--bg-light);
-    color: var(--text-on-light);
-    padding: 1rem 3rem 2rem;
-    border-top: 2px solid var(--bg-main);
-    font-size: 0.95rem;
-}
-
-.footer-inner {
+.user-profile {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    flex-wrap: wrap;
+    padding: 15px;
+    border-top: 2px solid var(--sidebar-border);
+    background-color: rgba(255, 255, 255, 0.1);
+    gap: 12px;
 }
 
-.site-footer a {
-    color: var(--text-on-light);
-    font-weight: 700;
-    text-decoration: none;
+.profile-pic {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--sidebar-border);
+    background-color: white;
 }
 
-.site-footer a:hover {
-    text-decoration: underline;
+/* Main Content Area */
+main {
+    flex-grow: 1;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
 }
 
-.footer-logo {
-    height: 40px;
+/* Plant List Toolbar (Based on your image) */
+.plant-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
-.select2-container {
-    color: #084309;
+.plant-toolbar h2 {
+    font-family: 'Fredoka One', cursive;
+    color: white;
+    font-size: 2rem;
+    margin: 0;
+    margin-right: 10px;
 }
 
-.select2-dropdown {
-    background-color: #ffffff;
+.tool-btn {
+    background-color: #b8e2b8;
+    border: 1px solid #7cb342;
+    color: #4e944e;
+    padding: 5px 15px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.sort-label {
+    margin-left: auto;
+    font-weight: bold;
+}
+
+select {
+    background-color: #7cb342;
+    color: #1a3300;
+    border: 1px solid #333;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: bold;
+}
+
+/* Plant List Container */
+.plant-list-container {
+    flex-grow: 1;
+    background-color: var(--list-bg);
+    border: 2px solid #333;
+    border-radius: 10px;
+    overflow: hidden;
+    background-image: repeating-linear-gradient(
+            var(--list-bg),
+            var(--list-bg) 40px,
+            var(--list-stripe) 40px,
+            var(--list-stripe) 80px
+    );
+}
+
+.plant-row {
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    transition: background 0.2s;
+}
+
+.plant-row:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.plant-summary-content {
+    display: flex;
+    align-items: center;
+    height: 40px; /* Matches your stripe height */
+    padding: 0 20px;
+    font-weight: bold;
+}
+
+.plant-details-extra {
+    padding: 15px 40px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-top: 1px dashed var(--sidebar-border);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.detail-label {
+    color: var(--accent-green);
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.plant-name { flex: 2; }
+.plant-species { flex: 2; font-style: italic; color: #555; }
+.plant-status { flex: 1; text-align: right; }
+
+.loading-state {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    gap: 15px;
+    font-size: 1.2rem;
+    color: #4e944e;
+}
+
+details summary {
+    list-style: none;
+    cursor: pointer;
+    outline: none;
+}
+details summary::-webkit-details-marker {
+    display: none;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }

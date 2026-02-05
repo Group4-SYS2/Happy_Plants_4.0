@@ -79,7 +79,7 @@ def signOutUser():
 
 def changePassword(new_password):
     try:
-        supabaseClient.auth.updateUser({"password" : new_password})
+        supabaseClient.auth.update_user({"password" : new_password})
         return "success"
     except supabase.AuthApiError as e:
         return e.code

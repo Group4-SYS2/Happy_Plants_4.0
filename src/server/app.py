@@ -1,6 +1,7 @@
 from fastapi.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 from starlette.routing import RedirectResponse
+from pydantic import BaseModel
 
 from fastapi import FastAPI, Request, Form, status
 
@@ -19,24 +20,44 @@ templates = Jinja2Templates(directory="templates")
 # Starts the database client
 initialize()
 
+@app.get("/")
+async def main(request: Request):
+    current_user = getCurrentUser()
+
+    if current_user is not None:
+        print("found user")
+        return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
+
+    return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
 @app.get("/home")
 async def home(request: Request):
     current_user = getCurrentUser()
 
     if current_user is not None:
         print("found user")
-        return templates.TemplateResponse("main.tpl", {"request": request, "email": current_user.user.email})
-    else:
-        print("no user found")
-        return templates.TemplateResponse("login.tpl", {"request": request})
-
-@app.get("/logout")
-async def logout(request: Request):
-    signOutUser()
+        return templates.TemplateResponse("home.tpl", {"request": request, "email": current_user.user.email})
 
     # Redirects user to the home page,
     # status_code is 303 because that makes the redirect request a GET request
-    return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+@app.get("/logout")
+async def logout(request: Request):
+    current_user = getCurrentUser()
+
+    if current_user is not None:
+        signOutUser()
+
+    return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+@app.get("/login")
+async def login(request: Request):
+    current_user = getCurrentUser()
+    if current_user is not None:
+        print("found user")
+        return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    else:
+        print("no user found")
+        return templates.TemplateResponse("login.tpl", {"request": request})
 @app.post("/login")
 async def login(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
@@ -50,8 +71,14 @@ async def login(request: Request, email: str = Form(), password: str = Form()):
 
 @app.get("/register")
 async def registerPage(request: Request):
-    return templates.TemplateResponse("register.tpl", {"request": request})
+    current_user = getCurrentUser()
 
+    if current_user is not None:
+        print("found user")
+        return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
+    else:
+        print("no user found")
+        return templates.TemplateResponse("register.tpl", {"request": request})
 @app.post("/register")
 async def register(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
@@ -66,11 +93,15 @@ async def register(request: Request, email: str = Form(), password: str = Form()
 @app.get("/myPlants")
 async def myPlants(request: Request):
     current_user = getCurrentUser()
-    user_id = current_user.user.id
 
-    plants = getUserPlants(user_id)
+    if current_user is not None:
+        user_id = current_user.user.id
+        plants = getUserPlants(user_id)
 
-    return templates.TemplateResponse("myPlants.tpl", {"request": request, "plants" : plants, "email": current_user.user.email})
+        return templates.TemplateResponse("myPlants.tpl", {"request": request, "plants" : plants, "email": current_user.user.email})
+    else:
+        print("no user found")
+        return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
 
 @app.delete("/myPlants/delete/{plant_id}")
 async def myPlantDelete(request: Request, plant_id: int):
@@ -81,11 +112,26 @@ async def myPlantDelete(request: Request, plant_id: int):
 @app.get("/account")
 async def myAccount(request: Request):
     current_user = getCurrentUser()
-    return templates.TemplateResponse("account.tpl", {"request": request, "email" : current_user.user.email})
 
+    if current_user is not None:
+        print("found user")
+        return templates.TemplateResponse("account.tpl", {"request": request, "email" : current_user.user.email})
+    else:
+        print("no user found")
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# A class is created so that the /account/change_password endpoint can recognize the data sent to it
+# by using this class as a "base model"
+class PasswordChangeRequest(BaseModel):
+    new_password: str
+
+# This method translates the received JSON from the body of the request
+# to an PasswordChangeRequest object with a new_password attribute
 @app.post("/account/change_password")
-def change_password(new_password: str):
-    changePassword(new_password)
+def change_password(request : Request, password_request : PasswordChangeRequest):
+    changePassword(password_request.new_password)
+
 
 
 
