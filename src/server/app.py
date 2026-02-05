@@ -1,3 +1,6 @@
+import os
+import requests
+from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 from starlette.routing import RedirectResponse
@@ -10,6 +13,8 @@ from database.databaseConnection import loginUser, registerUser, getAllUsers, in
 
 # Starts the fastapi RESTful api
 app = FastAPI()
+
+load_dotenv()
 
 # Mounts the app to a path, reason unclear
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -120,6 +125,13 @@ async def myAccount(request: Request):
         print("no user found")
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
 
+async def getAllSpecies():
+    plantRequest = requests.get("https://trefle.io/api/v1/plants?token=" + os.getenv("API_KEY"))
+    return plantRequest.json()
+
+async def searchForSpecies(searchTerm):
+    plantRequest = requests.get("https://trefle.io/api/v1/plants?token=" + os.getenv("API_KEY") + "&q=" + searchTerm)
+    return plantRequest.json()
 
 # A class is created so that the /account/change_password endpoint can recognize the data sent to it
 # by using this class as a "base model"
