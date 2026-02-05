@@ -58,6 +58,12 @@
             border-top: 2px solid var(--sidebar-border);
             text-align: center;
             background-color: rgba(255, 255, 255, 0.1);
+            transition: background 0.3s;
+        }
+
+        .sign-out-btn:hover {
+            background-color: #d32f2f;
+            color: white;
         }
 
         .user-profile {
