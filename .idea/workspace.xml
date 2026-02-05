@@ -5,11 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3df81b9c-ea75-420a-a704-e00727decaee" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/server/templates/myPlants.tpl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/database/databaseConnection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/database/databaseConnection.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/server/templates/login.tpl" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/templates/login.tpl" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/templates/main.tpl" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/templates/main.tpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/server/templates/register.tpl" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/templates/register.tpl" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,7 +34,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;ahmad-branch&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -63,6 +63,8 @@
       <workItem from="1770232609294" duration="3237000" />
       <workItem from="1770235898255" duration="1233000" />
       <workItem from="1770237394434" duration="1761000" />
+      <workItem from="1770247413171" duration="3459000" />
+      <workItem from="1770250928877" duration="303000" />
     </task>
     <servers />
   </component>

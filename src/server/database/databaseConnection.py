@@ -3,6 +3,33 @@ from supabase import create_client, Client
 
 global supabaseClient
 
+def deleteUserPlant(plant_id, user_id):
+    try:
+        response = (supabaseClient.table('user_plants')
+                    .delete()
+                    .eq("user_id", user_id)
+                    .eq("plant_id", plant_id)
+                    .execute())
+
+        return response.data
+
+    except supabaseClient.Error as e:
+        return e.code
+
+
+def getUserPlants(user_id):
+    try:
+        response = (supabaseClient.table('user_plants')
+                    .select("*")
+                    .eq("user_id", user_id)
+                    .execute())
+
+        return response.data
+
+    except supabaseClient.Error as e:
+        return e.code
+
+
 def getAllUsers():
     try:
         response = (supabaseClient.table("users")

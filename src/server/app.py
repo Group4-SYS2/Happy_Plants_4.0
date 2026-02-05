@@ -4,7 +4,8 @@ from starlette.routing import RedirectResponse
 
 from fastapi import FastAPI, Request, Form, status
 
-from database.databaseConnection import loginUser, registerUser, getAllUsers, initialize, getCurrentUser, signOutUser
+from database.databaseConnection import loginUser, registerUser, getAllUsers, initialize, getCurrentUser, signOutUser, \
+    getUserPlants, deleteUserPlant
 
 # Starts the fastapi RESTful api
 app = FastAPI()
@@ -62,4 +63,17 @@ async def register(request: Request, email: str = Form(), password: str = Form()
         print(response)
         return templates.TemplateResponse("register.tpl", {"request": request, "errorCode": response})
 
+@app.get("/myPlants")
+async def myPlants(request: Request):
+    current_user = getCurrentUser()
+    user_id = current_user.user.id
 
+    plants = getUserPlants(user_id)
+
+    return templates.TemplateResponse("myPlants.tpl", {"request": request, "plants" : plants, "email": current_user.user.email})
+
+@app.delete("/myPlants/delete/{plant_id}")
+async def myPlantDelete(request: Request, plant_id: int):
+    current_user = getCurrentUser()
+    user_id = current_user.user.id
+    deleteUserPlant(plant_id, user_id)
