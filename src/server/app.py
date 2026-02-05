@@ -33,7 +33,8 @@ async def home(request: Request):
 async def logout(request: Request):
     signOutUser()
 
-    ## Redirects user to the home page, status_code is 303 because that makes the redirect request a GET request
+    # Redirects user to the home page,
+    # status_code is 303 because that makes the redirect request a GET request
     return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
 @app.post("/login")
 async def login(request: Request, email: str = Form(), password: str = Form()):
