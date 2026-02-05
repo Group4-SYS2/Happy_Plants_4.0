@@ -10,3 +10,5 @@ How to run the program:
   3. Download all the requirements: pip install -r src/requirements.txt
   4. Navigate to the server: cd src/server
   5. Start the program: fastapi dev app.py
+
+You can now access the site through http://127.0.0.1:8000/
