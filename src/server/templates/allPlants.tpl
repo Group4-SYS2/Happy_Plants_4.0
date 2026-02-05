@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Happy Plants - My Plants</title>
+    <title>My Happy Plants - All Plants</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap" rel="stylesheet">
 
     <style>
@@ -210,7 +210,7 @@
 <nav>
     <a href="/home" class="nav-item">Home</a>
     <a href="#" class="nav-item active">My plants</a>
-    <a href="/allPlants" class="nav-item">Add a plant</a>
+    <a href="#" class="nav-item">Add a plant</a>
     <a href="/account" class="nav-item">My account</a>
     <div style="flex-grow: 1;"></div>
 
@@ -238,19 +238,16 @@
 
     <div class="plant-list-container">
         {% if plants %}
-        {% for plant in plants %}
-        <details class="plant-row" id='{{plant.row_id}}'>
+        {% for plant in plants.data %}
+        <details class="plant-row" id='{{plant.row_id}}' style="background-color: {{ '#FFFFFF' if plant.id % 2 == 0 else '#FFFF00' }};">
             <summary>
                 <div class="plant-summary-content">
                     <span style="flex: 2;">🌿 {{ plant.common_name if plant.common_name else plant.scientific_name }}</span>
-                    <span style="flex: 1; text-align: right; font-size: 0.8rem; color: #555;">
-                        Last watered: {{ plant.last_watered }} ▾
-                    </span>
                 </div>
             </summary>
 
             <div class="plant-details-extra">
-                <div><span class="detail-label">Scientific name:</span> {{ plant.scientific_name }} </div>
+                <div><span class="detail-label">Scientific name:</span> {{ plant.scientific_name }}</div>
                 <div><span class="detail-label">Family:</span> {{ plant.family }}</div>
                 <div style="margin-top: 10px;">
                     <button

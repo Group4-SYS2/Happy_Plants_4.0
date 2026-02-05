@@ -1,5 +1,6 @@
 import os
 import requests
+import jsonpickle
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
@@ -125,13 +126,26 @@ async def myAccount(request: Request):
         print("no user found")
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
 
+@app.get("/allPlants")
+async def myPlants(request: Request):
+    current_user = getCurrentUser()
+
+    if current_user is not None:
+        plants = await getAllSpecies()
+
+        return templates.TemplateResponse("allPlants.tpl", {"request": request, "plants" : plants, "email": current_user.user.email})
+    else:
+        print("no user found")
+        return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
+
+
 async def getAllSpecies():
     plantRequest = requests.get("https://trefle.io/api/v1/plants?token=" + os.getenv("API_KEY"))
-    return plantRequest.json()
+    return jsonpickle.decode(plantRequest.text)
 
 async def searchForSpecies(searchTerm):
-    plantRequest = requests.get("https://trefle.io/api/v1/plants?token=" + os.getenv("API_KEY") + "&q=" + searchTerm)
-    return plantRequest.json()
+    plantRequest = await requests.get("https://trefle.io/api/v1/plants?token=" + os.getenv("API_KEY") + "&q=" + searchTerm)
+    return jsonpickle.decode(plantRequest.text)
 
 # A class is created so that the /account/change_password endpoint can recognize the data sent to it
 # by using this class as a "base model"
