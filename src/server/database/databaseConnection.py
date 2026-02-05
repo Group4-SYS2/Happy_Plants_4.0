@@ -36,7 +36,7 @@ def getAllUsers():
                     .select("*")
                     .execute())
 
-        return response
+        return response.data
 
     except supabaseClient.AuthApiError as e:
         return e.code
@@ -72,7 +72,14 @@ def getCurrentUser():
 
 def signOutUser():
     try:
-        response = supabaseClient.auth.sign_out()
+        supabaseClient.auth.sign_out()
+        return "success"
+    except supabase.AuthApiError as e:
+        return e.code
+
+def changePassword(new_password):
+    try:
+        supabaseClient.auth.updateUser({"password" : new_password})
         return "success"
     except supabase.AuthApiError as e:
         return e.code

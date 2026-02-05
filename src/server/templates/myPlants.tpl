@@ -211,7 +211,7 @@
     <a href="/home" class="nav-item">Home</a>
     <a href="#" class="nav-item active">My plants</a>
     <a href="#" class="nav-item">Add a plant</a>
-    <a class="nav-item">My account</a>
+    <a href="/account" class="nav-item">My account</a>
     <div style="flex-grow: 1;"></div>
 
     <a href="/logout" class="sign-out-btn">Sign out</a>
