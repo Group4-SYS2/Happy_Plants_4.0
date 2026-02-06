@@ -175,4 +175,7 @@ pyrightconfig.json
 
 src/server/keys.json
 
+src/server/__pycache__
+src/server/database/__pycache__
+
 # End of https://www.toptal.com/developers/gitignore/api/python
