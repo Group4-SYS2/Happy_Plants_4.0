@@ -3,6 +3,12 @@ from supabase import create_client, Client
 
 global supabaseClient
 
+import json
+
+with open('./keys.json') as f:
+    keys = json.load(f)
+
+
 def deleteUserPlant(plant_id, user_id):
     try:
         response = (supabaseClient.table('user_plants')
@@ -86,6 +92,6 @@ def changePassword(new_password):
 
 def initialize():
     global supabaseClient
-    supabaseClient = create_client("https://fnugbmdbadpadwiqqjii.supabase.co", "sb_publishable_LMjYHLr3HcYeZK9inOObWQ_5i7V4gep")
+    supabaseClient = create_client(keys["supabaseUrl"], keys["supabaseKey"])
     print("Connection established!")
     return supabaseClient
