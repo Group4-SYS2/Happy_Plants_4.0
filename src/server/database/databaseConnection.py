@@ -8,10 +8,7 @@ from dotenv import load_dotenv
 load_dotenv() # Loads the .env file
 
 supabaseKey = os.getenv('SUPABASEKEY')
-print(supabaseKey)
 supabaseURL = os.getenv('SUPABASEURL')
-print(supabaseURL)
-
 
 def deleteUserPlant(plant_id, user_id):
     try:
