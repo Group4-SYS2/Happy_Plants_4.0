@@ -1,7 +1,14 @@
+import os
 import supabase
 from supabase import create_client, Client
 
 global supabaseClient
+from dotenv import load_dotenv
+
+load_dotenv() # Loads the .env file
+
+supabaseKey = os.getenv('SUPABASEKEY')
+supabaseURL = os.getenv('SUPABASEURL')
 
 def deleteUserPlant(plant_id, user_id):
     try:
@@ -86,6 +93,9 @@ def changePassword(new_password):
 
 def initialize():
     global supabaseClient
-    supabaseClient = create_client("https://fnugbmdbadpadwiqqjii.supabase.co", "sb_publishable_LMjYHLr3HcYeZK9inOObWQ_5i7V4gep")
+    global supabaseKey
+    global supabaseURL
+
+    supabaseClient = create_client(supabaseURL, supabaseKey)
     print("Connection established!")
     return supabaseClient
