@@ -1,12 +1,16 @@
+import os
 import supabase
 from supabase import create_client, Client
 
 global supabaseClient
+from dotenv import load_dotenv
 
-import json
+load_dotenv() # Loads the .env file
 
-with open('./keys.json') as f:
-    keys = json.load(f)
+supabaseKey = os.getenv('SUPABASEKEY')
+print(supabaseKey)
+supabaseURL = os.getenv('SUPABASEURL')
+print(supabaseURL)
 
 
 def deleteUserPlant(plant_id, user_id):
@@ -92,6 +96,9 @@ def changePassword(new_password):
 
 def initialize():
     global supabaseClient
-    supabaseClient = create_client(keys["supabaseUrl"], keys["supabaseKey"])
+    global supabaseKey
+    global supabaseURL
+
+    supabaseClient = create_client(supabaseURL, supabaseKey)
     print("Connection established!")
     return supabaseClient
