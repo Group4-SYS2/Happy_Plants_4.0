@@ -144,7 +144,7 @@
 
         <div id="error" class="error-message"></div>
 
-        <form id="registerForm" action="http://127.0.0.1:8000/register" method="POST">
+        <form id="registerForm" action="/register" method="POST">
             <input type="email" name="email" placeholder="E-mail" required value="test@mail.com">
             <input type="password" id="password" name="password" placeholder="Password" required>
             <input type="password" id="confirm_password" placeholder="Confirm Password" required>
@@ -152,7 +152,7 @@
             <button type="submit">Sign Up</button>
         </form>
 
-        <a href="http://127.0.0.1:8000/home" class="login-link">Already have an account? Login!</a>
+        <a href="/home" class="login-link">Already have an account? Login!</a>
     </div>
 </div>
 

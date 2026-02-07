@@ -150,14 +150,14 @@
 
         <div id="error" class="error-message"></div>
 
-        <form id="loginForm" action="http://127.0.0.1:8000/login" method="POST">
+        <form id="loginForm" action="/login" method="POST">
             <input type="email" name="email" placeholder="E-mail" value="test@mail.com">
             <input type="password" name="password" placeholder="Password" value="123456">
 
             <button type="submit">Log in</button>
         </form>
 
-        <a href="http://127.0.0.1:8000/register" class="register-link">No account? Register here!</a>
+        <a href="/register" class="register-link">No account? Register here!</a>
     </div>
 </div>
 
