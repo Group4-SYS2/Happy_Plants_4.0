@@ -137,7 +137,7 @@
             background-color: var(--list-bg);
             border: 2px solid #333;
             border-radius: 10px;
-            overflow: hidden;
+            overflow: scroll;
             background-image: repeating-linear-gradient(
                     var(--list-bg),
                     var(--list-bg) 40px,
@@ -209,8 +209,8 @@
 
 <nav>
     <a href="/home" class="nav-item">Home</a>
-    <a href="#" class="nav-item active">My plants</a>
-    <a href="#" class="nav-item">Add a plant</a>
+    <a href="/myPlants" class="nav-item">My plants</a>
+    <a href="/allPlants" class="nav-item active">Add a plant</a>
     <a href="/account" class="nav-item">My account</a>
     <div style="flex-grow: 1;"></div>
 
@@ -223,26 +223,26 @@
 
 <main>
     <div class="plant-toolbar">
-        <h2>Your plants</h2>
-        <button class="tool-btn">Water all plants</button>
+        <h2>All plants</h2>
         <button class="tool-btn">Expand all</button>
         <button class="tool-btn">Collapse all</button>
 
         <span class="sort-label">Sort by:</span>
         <select>
-            <option>Nickname</option>
-            <option>Species</option>
-            <option>Last Watered</option>
+            <option>Common name</option>
+            <option>Scientific name</option>
+            <option>Something else</option>
         </select>
     </div>
 
     <div class="plant-list-container">
         {% if plants %}
         {% for plant in plants.data %}
-        <details class="plant-row" id='{{plant.row_id}}' style="background-color: {{ '#FFFFFF' if plant.id % 2 == 0 else '#FFFF00' }};">
+        <details class="plant-row" id='{{plant.row_id}}' style="background-color: {{ '#E8F5E9' if plant.id % 2 == 0 else '#E8F5E9' }};">
             <summary>
                 <div class="plant-summary-content">
                     <span style="flex: 2;">🌿 {{ plant.common_name if plant.common_name else plant.scientific_name }}</span>
+                    <button onclick="addPlant(plant.id)">Add</button>
                 </div>
             </summary>
 
@@ -262,7 +262,7 @@
         {% endfor %}
         {% else %}
         <div class="loading-state">
-            <span>You haven't added any plants yet!</span>
+            <span>No plants found!</span>
         </div>
         {% endif %}
     </div>
@@ -271,10 +271,11 @@
 </body>
 
 <script>
-    async function deletePlant(plantId, index) {
+    // Påbörjad stub för lägg till-funktionalitet
+    async function addPlant(plantId) {
         try {
-            const response = await fetch(`/myPlants/delete/` + plantId, {
-                method: 'DELETE',
+            const response = await fetch(`/myPlants/addPlant/` + plantId, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                     // Add Authorization header here if your endpoint requires a JWT
@@ -282,18 +283,16 @@
             });
 
             if (response.ok) {
-                console.log(`Plant ${plantId} deleted successfully.`);
-                // Usually, you'd want to remove the element from the DOM here
-                // e.g., document.getElementById(`plant-${plantId}`).remove();
-                document.getElementById(index).remove();
+                console.log(`Plant ${plantId} added successfully.`);
             } else {
                 const errorData = await response.json();
-                console.error('Failed to delete plant:', errorData.detail || response.statusText);
-                alert('Could not delete plant. Please try again.');
+                console.error('Failed to add plant:', errorData.detail || response.statusText);
+                alert('Could not add plant. Please try again.');
             }
         } catch (error) {
-            console.error('Network error while deleting plant:', error);
+            console.error('Network error while adding plant:', error);
         }
     }
+
 </script>
 </html>
