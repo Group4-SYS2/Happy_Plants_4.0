@@ -139,6 +139,12 @@ async def myPlants(request: Request):
         return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
 
 
+@app.post("/addPlant")
+async def addPlant(request: Request):
+    current_user = getCurrentUser()
+
+
+
 async def getAllSpecies():
     plantRequest = requests.get("https://trefle.io/api/v1/plants?token=" + os.getenv("API_KEY"))
     return jsonpickle.decode(plantRequest.text)
