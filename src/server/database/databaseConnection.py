@@ -5,6 +5,8 @@ from supabase import create_client, Client
 global supabaseClient
 from dotenv import load_dotenv
 
+supabaseClient = None
+
 load_dotenv() # Loads the .env file
 
 supabaseKey = os.getenv('SUPABASEKEY')
