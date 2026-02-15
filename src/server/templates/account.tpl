@@ -266,15 +266,18 @@
 </body>
 
 <script>
+    // Opens a box for the user to enter their new password.
     function openModal() {
         document.getElementById('passwordModal').style.display = 'flex';
     }
+
 
     function closeModal() {
         document.getElementById('passwordModal').style.display = 'none';
         document.getElementById('newPassword').value = ''; // Clear input
     }
 
+    // Send an HTTP request to change the users' password.
     async function submitPasswordChange() {
         const newPassword = document.getElementById('newPassword').value;
 
@@ -287,7 +290,8 @@
             const response = await fetch('/account/change_password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // We wrap the password in an object to match standard JSON structures
+                // We wrap the password in an object to match the JSON structure
+                // needed for our endpoints' "PasswordChangeRequest" BaseModel
                 body: JSON.stringify({ "new_password": newPassword })
             });
 
@@ -300,7 +304,7 @@
             }
         } catch (error) {
             console.error('Network error:', error);
-            alert("Network error. Please check if the server is running.");
+            alert("Network error. Is the server running?");
         }
     }
 </script>

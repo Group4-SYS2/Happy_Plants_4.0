@@ -164,18 +164,13 @@
 <script>
     const errorDiv = document.getElementById('error');
 
+    // If our inserted variable "errorCode" is not null,
+    // we display its message.
+    // This is a function of Jinja2Templates.
     if ('{{errorCode}}' !== '') {
         errorDiv.innerHTML = '{{errorCode}}';
         errorDiv.style.display = 'block';
     }
-
-    if ('{{successCode}}' !== '') {
-        errorDiv.style.color = "#2e7d32";
-        errorDiv.style.backgroundColor = "#c8e6c9";
-        errorDiv.innerHTML = '{{successCode}}';
-        errorDiv.style.display = 'block';
-    }
-
 </script>
 
 </body>
