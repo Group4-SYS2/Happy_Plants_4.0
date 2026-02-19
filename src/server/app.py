@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from fastapi import FastAPI, Request, Form, status
 
-from database.databaseConnection import loginUser, registerUser, getAllUsers, initialize, getCurrentUser, signOutUser, \
+from database.databaseConnection import loginUser, registerUser, initialize, getCurrentUser, signOutUser, \
     getUserPlants, deleteUserPlant, changePassword
 
 # Starts the fastapi RESTful api
@@ -21,51 +21,84 @@ load_dotenv()
 # Mounts the app to a path, reason unclear
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Define where the templates are stored
+# Here we define where the templates are stored.
+# We use templates because you can insert variables into
+# the HTML, CSS, or Javascript of the file to make it easier
+# to
 templates = Jinja2Templates(directory="templates")
 
-# Starts the database client
+# Starts the database client.
+# NOTICE: Communication with the database client will have to be changed to at least
+# NOTICE: partly frontend for this app to function as expected
 initialize()
 
+# This is the FastAPI endpoint for the root of the app.
 @app.get("/")
+# This function gets triggered when a user visits the endpoint above.
 async def main(request: Request):
+
+    # Fetch the current user.
     current_user = getCurrentUser()
 
+    # If the user is logged in, they get redirected to /home
     if current_user is not None:
         print("found user")
         return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
 
+    # If not, they go to /login
     return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
 
+# This is the FastAPI endpoint for the home page of the app.
 @app.get("/home")
 async def home(request: Request):
+
+    # Fetch the current user.
     current_user = getCurrentUser()
 
+    # If user is logged in we give them the home.tpl file via Jinja2Templates.
+    # We must always return the "request" parameter when we send a template.
     if current_user is not None:
         print("found user")
         return templates.TemplateResponse("home.tpl", {"request": request, "email": current_user.user.email})
+        # We insert the users email in an "email" variable.
 
-    # Redirects user to the home page,
-    # status_code is 303 because that makes the redirect request a GET request
+    # Redirects user to the home page if they're not logged in.
+    # we set status_code to 303 because that makes the redirect request a GET request,
+    # which is required for our endpoint.
     return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
 @app.get("/logout")
 async def logout(request: Request):
+
+    # Fetch the current user.
     current_user = getCurrentUser()
 
+    # If there is a user logged in, they get signed out and then redirected to the "/" endpoint
     if current_user is not None:
         signOutUser()
 
+    # Otherwise, they just get redirected instead.
     return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
-@app.get("/login")
+
+# Returns the login page if the user is not logged in already.
+# As you can see, we reference "/login" twice.
+# This is because one of the endpoints is for GET requests,
+# and the other is for POST requests.
+@app.get("/login") # Notice "app.get"
 async def login(request: Request):
     current_user = getCurrentUser()
     if current_user is not None:
         print("found user")
+        # If the user is logged in they go to the root of the app.
         return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
     else:
         print("no user found")
+        # Returns the login.tpl file.
         return templates.TemplateResponse("login.tpl", {"request": request})
-@app.post("/login")
+
+# This endpoint receives the email and password from an HTML forms request.
+# This is why the datatype of email and password is "Form()".
+@app.post("/login") # Notice "app.post"
 async def login(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
     response = loginUser(email, password)
@@ -86,6 +119,7 @@ async def registerPage(request: Request):
     else:
         print("no user found")
         return templates.TemplateResponse("register.tpl", {"request": request})
+
 @app.post("/register")
 async def register(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
@@ -144,8 +178,6 @@ async def myPlants(request: Request):
 async def addPlant(request: Request):
     current_user = getCurrentUser()
 
-
-
 async def getAllSpecies():
     plantRequest = requests.get("https://trefle.io/api/v1/plants?token=" + os.getenv("API_KEY"))
     return jsonpickle.decode(plantRequest.text)
@@ -160,7 +192,7 @@ class PasswordChangeRequest(BaseModel):
     new_password: str
 
 # This method translates the received JSON from the body of the request
-# to an PasswordChangeRequest object with a new_password attribute
+# to a PasswordChangeRequest object with a new_password attribute
 @app.post("/account/change_password")
 def change_password(request : Request, password_request : PasswordChangeRequest):
     changePassword(password_request.new_password)

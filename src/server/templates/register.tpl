@@ -162,6 +162,11 @@
     const confirmPassword = document.getElementById('confirm_password');
     const errorDiv = document.getElementById('error');
 
+    // When the user submits the form, I.E presses the "sign up" button,
+    // we first check if password and confirm password are the same,
+    // and if the password is longer than 6 characters.
+    // If they are, the form sends a POST request to /register
+    // We prevent it from sending the request with "event.preventDefault()"
     form.addEventListener('submit', function(event) {
         if (password.value !== confirmPassword.value) {
             event.preventDefault();
