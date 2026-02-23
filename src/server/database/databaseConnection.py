@@ -2,10 +2,8 @@ import os
 import supabase
 from supabase import create_client, Client
 
-global supabaseClient
 from dotenv import load_dotenv
 
-supabaseClient = None
 
 
 # Loads the .env file from the root of the project.
@@ -21,18 +19,12 @@ supabaseURL = os.getenv('SUPABASEURL')
 # Here we establish our supabase client that we can use to
 # communicate with the database.
 # NOTICE: This will be have to be done in the frontend.
-def initialize():
-    global supabaseClient
-    global supabaseKey
-    global supabaseURL
+def get_admin_client() -> Client:
+    """Returnerar en Supabase admin-klient"""
+    return create_client(supabaseURL, supabaseKey)
 
-    # Creates a supabase client from the supabase package.
-    supabaseClient = create_client(supabaseURL, supabaseKey)
-    print("Connection established!")
-    return supabaseClient
-
-def get_client_for_token(token: str):
-    """Skapar en ny Supabase-klient med en aktiv session för den tokenen"""
+def get_client_for_token(token: str) -> Client:
+    """Skapar en Supabase-klient med användarens session"""
     client = create_client(supabaseURL, supabaseKey)
     client.auth.set_session(token, "")
     return client
@@ -52,8 +44,9 @@ def deleteUserPlant(plant_id, user_id, token):
         return response.data
 
     # If there is an error from the client, we return it.
-    except client.Error as e:
-        return e.code
+    except Exception as e:
+        print("Error deleting plant:", e)
+        return None
 
 
 # Fetches all plants in user_plants that match the users id.
@@ -69,16 +62,19 @@ def getUserPlants(user_id, token):
         return response.data
 
     # If there is an error from the client, we return it.
-    except client.Error as e:
-        return e.code
+    except Exception as e:
+        print("Error fetching plants:", e)
+        return None
 
 # Registers a new user
 def registerUser(email, password):
+    client = get_admin_client()
+
     # Here we use the supabase client to easily
     # register a new user.
     # The client will return an error in case such a user already exists.
     try:
-        response = supabaseClient.auth.sign_up(
+        client.auth.sign_up(
             {
                 "email": email,
                 "password": password,
@@ -87,8 +83,9 @@ def registerUser(email, password):
         return "success"
 
     # If there is an error with the authentication, we return it.
-    except supabase.AuthApiError as e:
-        return e.code
+    except Exception as e:
+        print("Register error:", e)
+        return str(e)
 
 # Logs in a user if their email:password combo is correct.
 def loginUser(email, password):
@@ -96,8 +93,10 @@ def loginUser(email, password):
     # This will return a JWT token from supabase,
     # which can be used to do execute functions
     # specifically on the signed-in users account.
+    client = get_admin_client()
+
     try:
-        response = supabaseClient.auth.sign_in_with_password(
+        response = client.auth.sign_in_with_password(
             {
                 "email": email,
                 "password": password,
@@ -106,7 +105,8 @@ def loginUser(email, password):
         return response.session
 
     # If there is an error with the authentication, we return it.
-    except supabase.AuthApiError as e:
+    except Exception as e:
+        print("Login error:", e)
         return None
 
 #def getCurrentUser():
@@ -124,5 +124,6 @@ def changePassword(access_token, new_password):
     try:
         client.auth.update_user({"password": new_password})
         return "success"
-    except supabase.AuthApiError as e:
-        return e.code
+    except Exception as e:
+        print("Change password error:", e)
+        return str(e)

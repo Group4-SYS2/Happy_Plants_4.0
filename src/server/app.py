@@ -1,6 +1,7 @@
 import os
 import requests
 import jsonpickle
+import httpx
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
@@ -10,8 +11,7 @@ from pydantic import BaseModel
 from fastapi import FastAPI, Request, Form, status
 from fastapi import HTTPException
 
-from database.databaseConnection import supabaseClient
-from database.databaseConnection import loginUser, registerUser, initialize, signOutUser, \
+from database.databaseConnection import loginUser, registerUser, signOutUser, \
     getUserPlants, deleteUserPlant, changePassword, get_client_for_token
 
 # Starts the fastapi RESTful api
@@ -26,8 +26,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Define where the templates are stored
 templates = Jinja2Templates(directory="templates")
 
-# Starts the database client
-initialize()
+http_client = httpx.AsyncClient()
+
 
 @app.get("/")
 async def main(request: Request):
@@ -144,7 +144,7 @@ async def myAccount(request: Request):
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
 
 @app.get("/allPlants")
-async def myPlants(request: Request):
+async def allPlants(request: Request):
     current_user = get_current_user_from_cookie(request)
 
     if current_user is not None:
@@ -163,8 +163,9 @@ async def addPlant(request: Request):
 
 
 async def getAllSpecies():
-    plantRequest = requests.get("https://trefle.io/api/v1/plants?token=" + os.getenv("API_KEY"))
-    return jsonpickle.decode(plantRequest.text)
+    resp = await http_client.get("https://trefle.io/api/v1/plants", params={"token": os.getenv("API_KEY")})
+    resp.raise_for_status()
+    return jsonpickle.decode(resp.text)
 
 def get_current_user_from_cookie(request: Request):
     token = request.cookies.get("access_token")
@@ -180,8 +181,9 @@ def get_current_user_from_cookie(request: Request):
         return None
 
 async def searchForSpecies(searchTerm):
-    plantRequest = await requests.get("https://trefle.io/api/v1/plants?token=" + os.getenv("API_KEY") + "&q=" + searchTerm)
-    return jsonpickle.decode(plantRequest.text)
+    resp = await http_client.get("https://trefle.io/api/v1/plants", params={"token": os.getenv("API_KEY"), "q": searchTerm})
+    resp.raise_for_status()
+    return jsonpickle.decode(resp.text)
 
 # A class is created so that the /account/change_password endpoint can recognize the data sent to it
 # by using this class as a "base model"
