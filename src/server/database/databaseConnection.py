@@ -31,12 +31,19 @@ def initialize():
     print("Connection established!")
     return supabaseClient
 
+def get_client_for_token(token: str):
+    """Skapar en ny Supabase-klient med en aktiv session för den tokenen"""
+    client = create_client(supabaseURL, supabaseKey)
+    client.auth.set_session(token, "")
+    return client
+
 # Deletes a users plants if they are logged in.
-def deleteUserPlant(plant_id, user_id):
+def deleteUserPlant(plant_id, user_id, token):
     # Here we use the supabase client to delete a users plant
     # from the user_plants table.
+    client = get_client_for_token(token)
     try:
-        response = (supabaseClient.table('user_plants')
+        response = (client.table('user_plants')
                     .delete()
                     .eq("user_id", user_id)
                     .eq("plant_id", plant_id)
@@ -45,14 +52,16 @@ def deleteUserPlant(plant_id, user_id):
         return response.data
 
     # If there is an error from the client, we return it.
-    except supabaseClient.Error as e:
+    except client.Error as e:
         return e.code
 
 
 # Fetches all plants in user_plants that match the users id.
-def getUserPlants(user_id):
+def getUserPlants(user_id, token):
+    client = get_client_for_token(token) 
+
     try:
-        response = (supabaseClient.table('user_plants')
+        response = (client.table('user_plants')
                     .select("*")
                     .eq("user_id", user_id)
                     .execute())
@@ -60,7 +69,7 @@ def getUserPlants(user_id):
         return response.data
 
     # If there is an error from the client, we return it.
-    except supabaseClient.Error as e:
+    except client.Error as e:
         return e.code
 
 # Registers a new user
@@ -94,14 +103,14 @@ def loginUser(email, password):
                 "password": password,
             }
         )
-        return "success"
+        return response.session
 
     # If there is an error with the authentication, we return it.
     except supabase.AuthApiError as e:
-        return e.code
+        return None
 
-def getCurrentUser():
-    return supabaseClient.auth.get_user()
+#def getCurrentUser():
+ #   return supabaseClient.auth.get_user()
 
 def signOutUser():
     try:
@@ -110,9 +119,10 @@ def signOutUser():
     except supabase.AuthApiError as e:
         return e.code
 
-def changePassword(new_password):
+def changePassword(access_token, new_password):
+    client = get_client_for_token(access_token)
     try:
-        supabaseClient.auth.update_user({"password" : new_password})
+        client.auth.update_user({"password": new_password})
         return "success"
     except supabase.AuthApiError as e:
         return e.code
