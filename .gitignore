@@ -10,6 +10,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 
 # C extensions
 *.so
@@ -58,6 +59,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+
 
 # Translations
 *.mo
@@ -181,6 +183,9 @@ src/server/keys.json
 
 src/server/__pycache__
 src/server/database/__pycache__
+
+.idea/workspace.xml
+
 
 # End of https://www.toptal.com/developers/gitignore/api/python
 

@@ -3,18 +3,20 @@ import supabase
 from supabase import create_client, Client
 
 from dotenv import load_dotenv
+from datetime import date
 
 
 
-# Loads the .env file from the root of the project.
-# Add a .env file with SUPABASEKEY and SUPABASEURL variables
+
+# Loads the ..env file from the root of the project.
+# Add a ..env file with SUPABASEKEY and SUPABASEURL variables
 # if you haven't already.
 load_dotenv()
 
 
-# Here we fetch the environment variables from our .env file.
-supabaseKey = os.getenv('SUPABASEKEY')
-supabaseURL = os.getenv('SUPABASEURL')
+# Here we fetch the environment variables from our ..env file.
+# supabaseKey = os.getenv('SUPABASEKEY')
+# supabaseURL = os.getenv('SUPABASEURL')
 
 # Here we establish our supabase client that we can use to
 # communicate with the database.
@@ -22,6 +24,10 @@ supabaseURL = os.getenv('SUPABASEURL')
 def get_admin_client() -> Client:
     """Returnerar en Supabase admin-klient"""
     return create_client(supabaseURL, supabaseKey)
+  
+def initialize():
+    supabaseKey = os.getenv('SUPABASEKEY')
+    supabaseURL = os.getenv('SUPABASEURL')
 
 def get_client_for_token(token: str) -> Client:
     """Skapar en Supabase-klient med användarens session"""
@@ -65,6 +71,35 @@ def getUserPlants(user_id, token):
     except Exception as e:
         print("Error fetching plants:", e)
         return None
+
+
+# Adds a plant to the user's library (user_plants table)
+def addUserPlant(user_id: str, plant_id: int, common_name: str):
+    try:
+        payload = {
+            "user_id": user_id,
+            "plant_id": plant_id,
+            "common_name": common_name,
+            "last_watered": str(date.today()),
+        }
+
+        response = (
+            supabaseClient.table("user_plants")
+            .insert(payload)
+            .execute()
+        )
+
+        return response.data  # inserted row(s)
+
+    except Exception as e:
+        # If you want, you can print/log e for debugging
+        return str(e)
+
+
+
+
+
+
 
 # Registers a new user
 def registerUser(email, password):
