@@ -8,23 +8,23 @@ from dotenv import load_dotenv
 supabaseClient = None
 
 
-# Loads the .env file from the root of the project.
-# Add a .env file with SUPABASEKEY and SUPABASEURL variables
+# Loads the ..env file from the root of the project.
+# Add a ..env file with SUPABASEKEY and SUPABASEURL variables
 # if you haven't already.
 load_dotenv()
 
 
-# Here we fetch the environment variables from our .env file.
-supabaseKey = os.getenv('SUPABASEKEY')
-supabaseURL = os.getenv('SUPABASEURL')
+# Here we fetch the environment variables from our ..env file.
+# supabaseKey = os.getenv('SUPABASEKEY')
+# supabaseURL = os.getenv('SUPABASEURL')
 
 # Here we establish our supabase client that we can use to
 # communicate with the database.
 # NOTICE: This will be have to be done in the frontend.
 def initialize():
     global supabaseClient
-    global supabaseKey
-    global supabaseURL
+    supabaseKey = os.getenv('SUPABASEKEY')
+    supabaseURL = os.getenv('SUPABASEURL')
 
     # Creates a supabase client from the supabase package.
     supabaseClient = create_client(supabaseURL, supabaseKey)

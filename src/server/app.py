@@ -15,7 +15,7 @@ from database.databaseConnection import loginUser, registerUser, initialize, get
 # Starts the fastapi RESTful api
 app = FastAPI()
 
-# Loads the .env file containing environment variables
+# Loads the ..env file containing environment variables
 load_dotenv()
 
 # Mounts the app to a path, reason unclear
