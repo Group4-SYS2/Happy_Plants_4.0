@@ -8,13 +8,13 @@ from dotenv import load_dotenv
 supabaseClient = None
 
 
-# Loads the .env file from the root of the project.
-# Add a .env file with SUPABASEKEY and SUPABASEURL variables
+# Loads the ..env file from the root of the project.
+# Add a ..env file with SUPABASEKEY and SUPABASEURL variables
 # if you haven't already.
 load_dotenv()
 
 
-# Here we fetch the environment variables from our .env file.
+# Here we fetch the environment variables from our ..env file.
 # supabaseKey = os.getenv('SUPABASEKEY')
 # supabaseURL = os.getenv('SUPABASEURL')
 

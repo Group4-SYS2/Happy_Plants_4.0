@@ -58,6 +58,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+.github/
 
 # Translations
 *.mo
@@ -181,6 +182,9 @@ src/server/keys.json
 
 src/server/__pycache__
 src/server/database/__pycache__
+
+.idea/workspace.xml
+
 
 # End of https://www.toptal.com/developers/gitignore/api/python
 
