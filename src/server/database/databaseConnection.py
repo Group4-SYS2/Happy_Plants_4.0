@@ -4,6 +4,8 @@ from supabase import create_client, Client
 
 global supabaseClient
 from dotenv import load_dotenv
+from datetime import date
+
 
 supabaseClient = None
 
@@ -62,6 +64,35 @@ def getUserPlants(user_id):
     # If there is an error from the client, we return it.
     except supabaseClient.Error as e:
         return e.code
+
+
+# Adds a plant to the user's library (user_plants table)
+def addUserPlant(user_id: str, plant_id: int, common_name: str):
+    try:
+        payload = {
+            "user_id": user_id,
+            "plant_id": plant_id,
+            "common_name": common_name,
+            "last_watered": str(date.today()),
+        }
+
+        response = (
+            supabaseClient.table("user_plants")
+            .insert(payload)
+            .execute()
+        )
+
+        return response.data  # inserted row(s)
+
+    except Exception as e:
+        # If you want, you can print/log e for debugging
+        return str(e)
+
+
+
+
+
+
 
 # Registers a new user
 def registerUser(email, password):

@@ -9,8 +9,14 @@ from pydantic import BaseModel
 
 from fastapi import FastAPI, Request, Form, status
 
-from database.databaseConnection import loginUser, registerUser, initialize, getCurrentUser, signOutUser, \
-    getUserPlants, deleteUserPlant, changePassword
+from database.databaseConnection import (
+    loginUser, registerUser, initialize, getCurrentUser, signOutUser,
+    getUserPlants, deleteUserPlant, changePassword, addUserPlant
+)
+from datetime import date
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent  # src/server
 
 # Starts the fastapi RESTful api
 app = FastAPI()
@@ -19,14 +25,12 @@ app = FastAPI()
 load_dotenv()
 
 # Mounts the app to a path, reason unclear
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 # Here we define where the templates are stored.
 # We use templates because you can insert variables into
 # the HTML, CSS, or Javascript of the file to make it easier
 # to
-templates = Jinja2Templates(directory="templates")
-
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 # Starts the database client.
 # NOTICE: Communication with the database client will have to be changed to at least
 # NOTICE: partly frontend for this app to function as expected
@@ -147,8 +151,14 @@ async def myPlants(request: Request):
 @app.delete("/myPlants/delete/{plant_id}")
 async def myPlantDelete(request: Request, plant_id: int):
     current_user = getCurrentUser()
+
+    if current_user is None:
+        return {"ok": False, "error": "NOT_LOGGED_IN"}
+
     user_id = current_user.user.id
-    deleteUserPlant(plant_id, user_id)
+    result = deleteUserPlant(plant_id, user_id)
+
+    return {"ok": True}
 
 @app.get("/account")
 async def myAccount(request: Request):
@@ -175,8 +185,34 @@ async def myPlants(request: Request):
 
 
 @app.post("/addPlant")
-async def addPlant(request: Request):
+async def addPlant(
+    request: Request,
+    plant_id: int = Form(...),
+    common_name: str = Form(...),
+    last_watered: str = Form(None)   # optional, format: YYYY-MM-DD
+):
     current_user = getCurrentUser()
+
+    if current_user is None:
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
+    user_id = current_user.user.id
+
+    result = addUserPlant(
+        user_id=user_id,
+        plant_id=plant_id,
+        common_name=common_name,
+        last_watered=last_watered
+    )
+
+    # If insert failed, you can show an error page or return to allPlants with an error query param.
+    if isinstance(result, str) and "error" in result.lower():
+        return templates.TemplateResponse(
+            "allPlants.tpl",
+            {"request": request, "error": result, "email": current_user.user.email, "plants": await getAllSpecies()}
+        )
+
+    return RedirectResponse(url="/myPlants", status_code=status.HTTP_303_SEE_OTHER)
 
 async def getAllSpecies():
     plantRequest = requests.get("https://trefle.io/api/v1/plants?token=" + os.getenv("API_KEY"))
@@ -198,7 +234,24 @@ def change_password(request : Request, password_request : PasswordChangeRequest)
     changePassword(password_request.new_password)
 
 
+class AddPlantRequest(BaseModel):
+    plant_id: int
+    common_name: str
 
+@app.post("/myPlants/addPlant")
+async def add_plant(req: AddPlantRequest):
+    current_user = getCurrentUser()
+    if current_user is None:
+        return {"ok": False, "error": "NOT_LOGGED_IN"}
+
+    user_id = current_user.user.id
+    result = addUserPlant(user_id, req.plant_id, req.common_name)
+
+    # crude success check
+    if isinstance(result, list):
+        return {"ok": True, "data": result}
+
+    return {"ok": False, "error": result}
 
 
 
