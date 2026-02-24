@@ -12,7 +12,7 @@ from fastapi import FastAPI, Request, Form, status
 from fastapi import HTTPException
 
 from database.databaseConnection import (
-    loginUser, registerUser, initialize, getCurrentUser, signOutUser,
+    loginUser, registerUser, initialize, signOutUser,
     getUserPlants, deleteUserPlant, changePassword, addUserPlant, get_client_for_token
 )
 from datetime import date
@@ -242,8 +242,9 @@ class AddPlantRequest(BaseModel):
     common_name: str
 
 @app.post("/myPlants/addPlant")
-async def add_plant(req: AddPlantRequest):
-    current_user = getCurrentUser()
+async def add_plant(request: Request, req: AddPlantRequest):
+    token = request.cookies.get("access_token")
+    current_user = get_current_user_from_cookie(request)
     if current_user is None:
         return {"ok": False, "error": "NOT_LOGGED_IN"}
 

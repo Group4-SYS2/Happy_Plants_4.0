@@ -15,8 +15,8 @@ load_dotenv()
 
 
 # Here we fetch the environment variables from our ..env file.
-# supabaseKey = os.getenv('SUPABASEKEY')
-# supabaseURL = os.getenv('SUPABASEURL')
+supabaseKey = os.getenv('SUPABASEKEY')
+supabaseURL = os.getenv('SUPABASEURL')
 
 # Here we establish our supabase client that we can use to
 # communicate with the database.
@@ -25,9 +25,9 @@ def get_admin_client() -> Client:
     """Returnerar en Supabase admin-klient"""
     return create_client(supabaseURL, supabaseKey)
   
-def initialize():
-    supabaseKey = os.getenv('SUPABASEKEY')
-    supabaseURL = os.getenv('SUPABASEURL')
+#def initialize():
+    #supabaseKey = os.getenv('SUPABASEKEY')
+    #supabaseURL = os.getenv('SUPABASEURL')
 
 def get_client_for_token(token: str) -> Client:
     """Skapar en Supabase-klient med användarens session"""
@@ -74,7 +74,8 @@ def getUserPlants(user_id, token):
 
 
 # Adds a plant to the user's library (user_plants table)
-def addUserPlant(user_id: str, plant_id: int, common_name: str):
+def addUserPlant(user_id: str, plant_id: int, common_name: str, token):
+    client = get_client_for_token(token)
     try:
         payload = {
             "user_id": user_id,
@@ -84,7 +85,7 @@ def addUserPlant(user_id: str, plant_id: int, common_name: str):
         }
 
         response = (
-            supabaseClient.table("user_plants")
+            client.table("user_plants")
             .insert(payload)
             .execute()
         )
@@ -147,9 +148,10 @@ def loginUser(email, password):
 #def getCurrentUser():
  #   return supabaseClient.auth.get_user()
 
-def signOutUser():
+def signOutUser(token):
+    client = get_client_for_token(token)
     try:
-        supabaseClient.auth.sign_out()
+        client.auth.sign_out()
         return "success"
     except supabase.AuthApiError as e:
         return e.code
