@@ -27,8 +27,9 @@ jobs:
 
     - name: Run tests
       env:
-        ENV: test
-        SUPABASE_URL: "https://example.supabase.co"
-        SUPABASE_KEY: "test-key"
+        ENV: ci
+        SUPABASE_URL: "https://ci.example.supabase.co"
+        SUPABASE_KEY: "ci-dummy-key"
+        PYTHONPATH: ${{ github.workspace }}
       run: |
         pytest -v
