@@ -250,7 +250,8 @@
             </summary>
 
             <div class="plant-details-extra">
-                <div><span class="detail-label">Plant ID:</span> {{ plant.plant_id }}</div>
+                <div><span class="detail-label">Scientific name:</span> {{ plant.scientific_name }} </div>
+                <div><span class="detail-label">Family:</span> {{ plant.family }}</div>
                 <div style="margin-top: 10px;">
                     <button
                             class="tool-btn"
