@@ -17,3 +17,5 @@ How to run the program:
   5. Start the program: `fastapi dev app.py`
 
 You can now access the site through http://127.0.0.1:8000/
+
+CI trigger
