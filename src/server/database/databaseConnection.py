@@ -25,9 +25,9 @@ def get_admin_client() -> Client:
     """Returnerar en Supabase admin-klient"""
     return create_client(supabaseURL, supabaseKey)
   
-#def initialize():
-    #supabaseKey = os.getenv('SUPABASEKEY')
-    #supabaseURL = os.getenv('SUPABASEURL')
+def initialize():
+    supabaseKey = os.getenv('SUPABASEKEY')
+    supabaseURL = os.getenv('SUPABASEURL')
 
 def get_client_for_token(token: str) -> Client:
     """Skapar en Supabase-klient med användarens session"""

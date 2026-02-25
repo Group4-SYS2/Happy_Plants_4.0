@@ -242,7 +242,7 @@
             <summary>
                 <div class="plant-summary-content">
                     <span style="flex: 2;">🌿 {{ plant.common_name if plant.common_name else plant.scientific_name }}</span>
-                    <button onclick="addPlant(plant.id)">Add</button>
+                    <button onclick="addPlant({{ plant.id }}, '{{ (plant.common_name or plant.scientific_name) | e }}')">Add</button>
                 </div>
             </summary>
 
@@ -271,28 +271,31 @@
 </body>
 
 <script>
-    // Påbörjad stub för lägg till-funktionalitet
-    async function addPlant(plantId) {
-        try {
-            const response = await fetch(`/myPlants/addPlant/` + plantId, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                    // Add Authorization header here if your endpoint requires a JWT
-                }
-            });
+  async function addPlant(plantId, commonName) {
+      try {
+          const response = await fetch(`/myPlants/addPlant`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({
+                  plant_id: plantId,
+                  common_name: commonName
+              })
+          });
 
-            if (response.ok) {
-                console.log(`Plant ${plantId} added successfully.`);
-            } else {
-                const errorData = await response.json();
-                console.error('Failed to add plant:', errorData.detail || response.statusText);
-                alert('Could not add plant. Please try again.');
-            }
-        } catch (error) {
-            console.error('Network error while adding plant:', error);
-        }
-    }
+          const data = await response.json();
+
+          if (response.ok && data.ok) {
+              console.log(`Plant ${plantId} added successfully.`);
+              alert("Plant added!");
+          } else {
+              console.error('Failed to add plant:', data);
+              alert('Could not add plant: ' + (data.error || response.statusText));
+          }
+      } catch (error) {
+          console.error('Network error while adding plant:', error);
+          alert("Network/server error when adding plant.");
+      }
+  }
 
 </script>
 </html>

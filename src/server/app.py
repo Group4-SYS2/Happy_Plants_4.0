@@ -249,7 +249,7 @@ async def add_plant(request: Request, req: AddPlantRequest):
         return {"ok": False, "error": "NOT_LOGGED_IN"}
 
     user_id = current_user.user.id
-    result = addUserPlant(user_id, req.plant_id, req.common_name)
+    result = addUserPlant(user_id, req.plant_id, req.common_name, token)
 
     # crude success check
     if isinstance(result, list):
