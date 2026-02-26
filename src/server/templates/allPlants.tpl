@@ -272,29 +272,30 @@
 
 <script>
   async function addPlant(plantId, commonName) {
-    try {
-      const response = await fetch(`/myPlants/addPlant`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plant_id: plantId,
-          common_name: commonName
-        })
-      });
+      try {
+          const response = await fetch(`/myPlants/addPlant`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({
+                  plant_id: plantId,
+                  common_name: commonName
+              })
+          });
 
-      const data = await response.json();
+          const data = await response.json();
 
-      if (response.ok && data.ok) {
-        console.log(`Plant ${plantId} added successfully.`);
-        alert("Plant added!");
-      } else {
-        console.error('Failed to add plant:', data);
-        alert('Could not add plant: ' + (data.error || response.statusText));
+          if (response.ok && data.ok) {
+              console.log(`Plant ${plantId} added successfully.`);
+              alert("Plant added!");
+          } else {
+              console.error('Failed to add plant:', data);
+              alert('Could not add plant: ' + (data.error || response.statusText));
+          }
+      } catch (error) {
+          console.error('Network error while adding plant:', error);
+          alert("Network/server error when adding plant.");
       }
-    } catch (error) {
-      console.error('Network error while adding plant:', error);
-      alert("Network/server error when adding plant.");
-    }
   }
+
 </script>
 </html>
