@@ -34,8 +34,9 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 # Starts the database client.
 # NOTICE: Communication with the database client will have to be changed to at least
 # NOTICE: partly frontend for this app to function as expected
+#
 # initialize()
-@app.on_event("startup")
+# @app.on_event("startup")
 def startup_event():
     initialize()
 
