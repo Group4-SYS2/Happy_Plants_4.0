@@ -19,7 +19,7 @@ class MockTable:
         self.insert_payload = None
 
     def delete(self):
-        self.calls.append(("delete", args))
+        self.calls.append(("delete",))
         return self
 
     def select(self, *args):
@@ -93,7 +93,7 @@ class MockSupabaseClient:
 @pytest.fixture
 def mock_admin_client(mocker):
     client = MockSupabaseClient()
-    mocker.patch.object(databaseConnection, "get_mock_admin_client", return_value=client)
+    mocker.patch.object(databaseConnection, "get_admin_client", return_value=client)
     return client
 
 @pytest.fixture
@@ -112,7 +112,7 @@ def test_get_user_plants_returns_data_and_filters_by_user(mock_token_client):
     assert result[0]["plant"] == "Monstera"
 
     assert mock_token_client.last_table_name == "user_plants"
-    assert ("select", (("*",)) in mock_token_client.last_table.calls
+    assert ("select", ("*",)) in mock_token_client.last_table.calls
     assert ("eq", "user_id", "user123") in mock_token_client.last_table.calls
     assert ("execute",) in mock_token_client.last_table.calls
 
@@ -175,24 +175,24 @@ def test_add_user_plant_inserts_payload(mock_token_client, mocker):
         plant_id=42,
         common_name="Aloe Vera",
         token="tkn",
-        )
+    )
 
-        assert isinstance(result, list)
-        assert mock_token_client.last_table_name == "user_plants"
+    assert isinstance(result, list)
+    assert mock_token_client.last_table_name == "user_plants"
 
-        payload = mock_token_client.last_table.insert_payload
-        assert payload["user_id"] == "user123"
-        assert payload["plant_id"] == 42
-        assert payload["common_name"] == "Aloe Vera"
-        assert payload["last_watered"] == "2026-01-01"
+    payload = mock_token_client.last_table.insert_payload
+    assert payload["user_id"] == "user123"
+    assert payload["plant_id"] == 42
+    assert payload["common_name"] == "Aloe Vera"
+    assert payload["last_watered"] == "2026-01-01"
 
-        assert ("insert", payload) in mock_token_client.last_table.calls
-        assert ("execute",) in mock_token_client.last_table.calls
+    assert ("insert", payload) in mock_token_client.last_table.calls
+    assert ("execute",) in mock_token_client.last_table.calls
 
 # =========================
 # Tester: registerUser
 # =========================
-def test_register_user_returns_success(mock_token_client):
+def test_register_user_returns_success(mock_admin_client):
     result = databaseConnection.registerUser("a@b.com", "password")
     assert result == "success"
     assert ("sign_up", {"email": "a@b.com", "password": "password"}) in mock_admin_client.auth.calls
