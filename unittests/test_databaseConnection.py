@@ -1,4 +1,5 @@
 import pytest
+from datetime import date
 
 from src.server.database import databaseConnection
 
@@ -6,38 +7,67 @@ from src.server.database import databaseConnection
 # Mock-klasser
 # =========================
 class MockResponse:
-    def __init__(self, data):
+    def __init__(self, data=None, session=None):
         self.data = data
+        self.session = session
 
 
 class MockTable:
     def __init__(self, data):
         self.data = data
+        self.calls = []
+        self.insert_payload = None
 
     def delete(self):
+        self.calls.append(("delete",))
         return self
 
-    def select(self, *_):
+    def select(self, *args):
+        self.calls.append(("select", args))
         return self
 
-    def eq(self, *_):
+    def insert(self, payload):
+        self.calls.append(("insert", payload))
+        self.insert_payload = payload
+        return self
+
+    def eq(self, column, value):
+        self.calls.append(("eq", column, value))
         return self
 
     def execute(self):
-        return MockResponse(self.data)
+        self.calls.append(("execute",))
+        return MockResponse(data=self.data)
 
 
 class MockAuth:
-    def sign_up(self, *_):
+    def __init__(self):
+        self.calls = []
+        self.raise_on = set()
+        self.login_session_value = "session_token_123"
+
+    def sign_up(self, payload):
+        self.calls.append(("sign_up", payload))
+        if "sign_up" in self.raise_on:
+            raise Exception("User already exists")
         return "ok"
 
-    def sign_in_with_password(self, *_):
-        return "ok"
+    def sign_in_with_password(self, payload):
+        self.calls.append(("sign_in_with_password", payload))
+        if "sign_in_with_password" in self.raise_on:
+            raise Exception("Invalid login")
+        return MockResponse(session=self.login_session_value)
 
     def sign_out(self):
+        self.calls.append(("sign_out",))
+        if "sign_out" in self.raise_on:
+            raise Exception("Auth sign out failed")
         return "ok"
 
-    def update_user(self, *_):
+    def update_user(self, payload):
+        self.calls.append(("update_user", payload))
+        if "update_user" in self.raise_on:
+            raise Exception("Update failed")
         return "ok"
 
     def get_user(self):
@@ -45,52 +75,167 @@ class MockAuth:
 
 
 class MockSupabaseClient:
-    def table(self, *_):
-        # Returnerar "låtsas-tabell" med sampledata
-        return MockTable([{"plant": "Monstera"}])
+    def __init__(self, table_data=None):
+        self.auth = MockAuth()
+        self.last_table_name = None
+        self.last_table = None
+        self.table_data = table_data if table_data is not None else [{"plant": "Monstera"}]
 
-    auth = MockAuth()
-
-
-# =========================
-# Fixture (ska ligga på modulnivå, inte inuti klass)
-# =========================
-@pytest.fixture(autouse=True)
-def mock_supabase_client(mocker):
-    mock_client = MockSupabaseClient()
-    # Ersätter global supabaseClient i databaseConnection
-    mocker.patch.object(databaseConnection, "supabaseClient", mock_client)
+    def table(self, name):
+       self.last_table_name = name
+       self.last_table = MockTable(self.table_data)
+       return self.last_table
 
 
 # =========================
-# Tester
+# Fixtures
 # =========================
-def test_get_user_plants_returns_data():
-    result = databaseConnection.getUserPlants("user123")
+@pytest.fixture
+def mock_admin_client(mocker):
+    client = MockSupabaseClient()
+    mocker.patch.object(databaseConnection, "get_admin_client", return_value=client)
+    return client
+
+@pytest.fixture
+def mock_token_client(mocker):
+    client = MockSupabaseClient()
+    mocker.patch.object(databaseConnection, "get_client_for_token", return_value=client)
+    return client
+
+# =========================
+# Tester: getUserPlants
+# =========================
+def test_get_user_plants_returns_data_and_filters_by_user(mock_token_client):
+    result = databaseConnection.getUserPlants("user123", token="tkn")
+
     assert isinstance(result, list)
     assert result[0]["plant"] == "Monstera"
 
+    assert mock_token_client.last_table_name == "user_plants"
+    assert ("select", ("*",)) in mock_token_client.last_table.calls
+    assert ("eq", "user_id", "user123") in mock_token_client.last_table.calls
+    assert ("execute",) in mock_token_client.last_table.calls
 
-def test_delete_user_plant_returns_deleted_data():
-    result = databaseConnection.deleteUserPlant(1, "user123")
+def test_get_user_plants_returns_none_on_error(mocker):
+    class ErrorClient(MockSupabaseClient):
+        def table(self, name):
+            t = super().table(name)
+
+            def boom():
+                raise Exception("DB down")
+
+            t.execute = boom
+            return t
+
+    mocker.patch.object(databaseConnection, "get_client_for_token", return_value=ErrorClient())
+    result = databaseConnection.getUserPlants("user123", token="tkn")
+    assert result is None
+
+# =========================
+# Tester: deleteUserPlant
+# =========================
+def test_delete_user_plant_calls_delete_and_fillers(mock_token_client):
+    result = databaseConnection.deleteUserPlant(plant_id=1, user_id="user123", token="tkn")
+
     assert result[0]["plant"] == "Monstera"
+    assert mock_token_client.last_table_name == "user_plants"
+    assert ("delete",) in mock_token_client.last_table.calls
+    assert ("eq", "user_id", "user123") in mock_token_client.last_table.calls
+    assert ("eq", "plant_id", 1) in mock_token_client.last_table.calls
+    assert ("execute",) in mock_token_client.last_table.calls
 
+def test_delete_user_plant_returns_none_on_error(mocker):
+    class ErrorClient(MockSupabaseClient):
+        def table(self, name):
+            t = super().table(name)
 
-def test_register_user_returns_success():
+            def boom():
+                raise Exception("delete failed")
+
+            t.execute = boom
+            return t
+
+    mocker.patch.object(databaseConnection, "get_client_for_token", return_value=ErrorClient())
+    result = databaseConnection.deleteUserPlant(plant_id=1, user_id="user123", token="tkn")
+    assert result is None
+
+# =========================
+# Tester: addUserPlant
+# =========================
+def test_add_user_plant_inserts_payload(mock_token_client, mocker):
+    class FakeDate:
+        @staticmethod
+        def today():
+            return date(2026, 1, 1)
+
+    mocker.patch.object(databaseConnection, "date", FakeDate)
+
+    result = databaseConnection.addUserPlant (
+        user_id="user123",
+        plant_id=42,
+        common_name="Aloe Vera",
+        token="tkn",
+    )
+
+    assert isinstance(result, list)
+    assert mock_token_client.last_table_name == "user_plants"
+
+    payload = mock_token_client.last_table.insert_payload
+    assert payload["user_id"] == "user123"
+    assert payload["plant_id"] == 42
+    assert payload["common_name"] == "Aloe Vera"
+    assert payload["last_watered"] == "2026-01-01"
+
+    assert ("insert", payload) in mock_token_client.last_table.calls
+    assert ("execute",) in mock_token_client.last_table.calls
+
+# =========================
+# Tester: registerUser
+# =========================
+def test_register_user_returns_success(mock_admin_client):
     result = databaseConnection.registerUser("a@b.com", "password")
     assert result == "success"
+    assert ("sign_up", {"email": "a@b.com", "password": "password"}) in mock_admin_client.auth.calls
 
+def test_register_user_returns_error_string_on_exception(mock_admin_client):
+    mock_admin_client.auth.raise_on.add("sign_up")
+    result = databaseConnection.registerUser("a@b.com", "password")
+    assert isinstance(result, str)
+    assert result != "success"
 
-def test_login_user_returns_success():
+# =========================
+# Tester: loginUser
+# =========================
+def test_login_user_returns_session(mock_admin_client):
+    mock_admin_client.auth.login_session_value = "jwt_session_abc"
     result = databaseConnection.loginUser("a@b.com", "password")
+
+    assert result == "jwt_session_abc"
+    assert ("sign_in_with_password", {"email": "a@b.com", "password": "password"}) in mock_admin_client.auth.calls
+
+def test_login_user_returns_none_on_error(mock_admin_client):
+    mock_admin_client.auth.raise_on.add("sign_in_with_password")
+    result = databaseConnection.loginUser("a@b.com", "wrong")
+    assert result is None
+
+# =========================
+# Tester: signOutUser
+# =========================
+def test_sign_out_user_returns_success(mock_token_client):
+    result = databaseConnection.signOutUser(token="tkn")
     assert result == "success"
+    assert ("sign_out",) in mock_token_client.auth.calls
 
-
-def test_sign_out_user_returns_success():
-    result = databaseConnection.signOutUser()
+# =========================
+# Tester: changePassword
+# =========================
+def test_change_password_returns_success_and_calls_update(mock_token_client):
+    result = databaseConnection.changePassword(access_token="tkn", new_password="newpassword")
     assert result == "success"
+    assert ("update_user", {"password": "newpassword"}) in mock_token_client.auth.calls
 
-
-def test_change_password_returns_success():
-    result = databaseConnection.changePassword("newpassword")
-    assert result == "success"
+def test_change_password_returns_error_string_on_exception(mock_token_client):
+    mock_token_client.auth.raise_on.add("update_user")
+    result = databaseConnection.changePassword(access_token="tkn", new_password="newpassword")
+    assert isinstance(result, str)
+    assert result != "success"
