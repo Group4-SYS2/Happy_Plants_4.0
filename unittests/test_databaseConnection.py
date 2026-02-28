@@ -1,4 +1,5 @@
 import pytest
+from datetime import date
 
 from src.server.database import databaseConnection
 
@@ -6,29 +7,49 @@ from src.server.database import databaseConnection
 # Mock-klasser
 # =========================
 class MockResponse:
-    def __init__(self, data):
+    def __init__(self, data=None, session=None):
         self.data = data
+        self.session = session
 
 
 class MockTable:
     def __init__(self, data):
         self.data = data
+        self.calls = []
+        self.insert_payload = None
 
     def delete(self):
+        self.calls.append(("delete", args))
         return self
 
-    def select(self, *_):
+    def select(self, *args):
+        self.calls.append(("select", args))
         return self
 
-    def eq(self, *_):
+    def insert(self, payload):
+        self.calls.append(("insert", payload))
+        self.insert_payload = payload
+        return self
+
+    def eq(self, column, value):
+        self.calls.append(("eq", column, value))
         return self
 
     def execute(self):
-        return MockResponse(self.data)
+        self.calls.append(("execute",))
+        return MockResponse(data=self.data)
 
 
 class MockAuth:
-    def sign_up(self, *_):
+    def __init__(self):
+        self.calls = []
+        self.raise_on = set()
+        self.login_session_value = "session_token_123"
+
+    def sign_up(self, payload):
+        self.calls.append(("sign_up", payload))
+        if "sign_up" in self.raise_on:
+            raise Expection("User already exists")
         return "ok"
 
     def sign_in_with_password(self, *_):
