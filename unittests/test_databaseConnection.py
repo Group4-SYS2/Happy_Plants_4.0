@@ -203,10 +203,20 @@ def test_register_user_returns_error_string_on_exception(mock_admin_client):
     assert isinstance(result, str)
     assert result != "success"
 
-
-def test_login_user_returns_success():
+# =========================
+# Tester: loginUser
+# =========================
+def test_login_user_returns_session(mock_admin_client):
+    mock_admin_client.auth.login_session_value = "jwt_session_abc"
     result = databaseConnection.loginUser("a@b.com", "password")
-    assert result == "success"
+
+    assert result == "jwt_session_abc"
+    assert ("sign_in_with_password", {"email": "a@b.com", "password": "password"}) in mock_admin_client.auth.calls
+
+def test_login_user_returns_none_on_error(mock_admin_client):
+    mock_admin_client.auth.raise_on.add("sign_in_with_password")
+    result = databaseConnection.loginUser("a@b.com", "wrong")
+    assert result is None
 
 
 def test_sign_out_user_returns_success():
