@@ -159,6 +159,37 @@ def test_delete_user_plant_returns_none_on_error(mocker):
     result = databaseConnection.deleteUserPlant(plant_id=1, user_id="user123", token="tkn")
     assert result is None
 
+# =========================
+# Tester: addUserPlant
+# =========================
+def test_add_user_plant_inserts_payload(mock_token_client, mocker):
+    class FakeDate:
+        @staticmethod
+        def today():
+            return date(2026, 1, 1)
+
+    mocker.patch.object(databaseConnection, "date", FakeDate)
+
+    result = databaseConnection.addUserPlant (
+        user_id="user123",
+        plant_id=42,
+        common_name="Aloe Vera",
+        token="tkn",
+        )
+
+        assert isinstance(result, list)
+        assert mock_token_client.last_table_name == "user_plants"
+
+        payload = mock_token_client.last_table.insert_payload
+        assert payload["user_id"] == "user123"
+        assert payload["plant_id"] == 42
+        assert payload["common_name"] == "Aloe Vera"
+        assert payload["last_watered"] == "2026-01-01"
+
+        assert ("insert", payload) in mock_token_client.last_table.calls
+        assert ("execute",) in mock_token_client.last_table.calls
+
+
 def test_register_user_returns_success():
     result = databaseConnection.registerUser("a@b.com", "password")
     assert result == "success"
