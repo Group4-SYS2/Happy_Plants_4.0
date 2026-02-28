@@ -189,10 +189,19 @@ def test_add_user_plant_inserts_payload(mock_token_client, mocker):
         assert ("insert", payload) in mock_token_client.last_table.calls
         assert ("execute",) in mock_token_client.last_table.calls
 
-
-def test_register_user_returns_success():
+# =========================
+# Tester: registerUser
+# =========================
+def test_register_user_returns_success(mock_token_client):
     result = databaseConnection.registerUser("a@b.com", "password")
     assert result == "success"
+    assert ("sign_up", {"email": "a@b.com", "password": "password"}) in mock_admin_client.auth.calls
+
+def test_register_user_returns_error_string_on_exception(mock_admin_client):
+    mock_admin_client.auth.raise_on.add("sign_up")
+    result = databaseConnection.registerUser("a@b.com", "password")
+    assert isinstance(result, str)
+    assert result != "success"
 
 
 def test_login_user_returns_success():
