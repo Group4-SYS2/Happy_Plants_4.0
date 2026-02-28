@@ -218,12 +218,24 @@ def test_login_user_returns_none_on_error(mock_admin_client):
     result = databaseConnection.loginUser("a@b.com", "wrong")
     assert result is None
 
-
-def test_sign_out_user_returns_success():
-    result = databaseConnection.signOutUser()
+# =========================
+# Tester: signOutUser
+# =========================
+def test_sign_out_user_returns_success(mock_token_client):
+    result = databaseConnection.signOutUser(token="tkn")
     assert result == "success"
+    assert ("sign_out",) in mock_token_client.auth.calls
 
-
-def test_change_password_returns_success():
-    result = databaseConnection.changePassword("newpassword")
+# =========================
+# Tester: changePassword
+# =========================
+def test_change_password_returns_success_and_calls_update(mock_token_client):
+    result = databaseConnection.changePassword(access_token="tkn", new_password="newpassword")
     assert result == "success"
+    assert ("update_user", {"password": "newpassword"}) in mock_token_client.auth.calls
+
+def test_change_password_returns_error_string_on_exception(mock_token_client):
+    mock_token_client.auth.raise_on.add("update_user")
+    result = databaseConnection.changePassword(access_token="tkn", new_password="newpassword")
+    assert isinstance(result, str)
+    assert result != "success"
