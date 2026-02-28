@@ -49,16 +49,25 @@ class MockAuth:
     def sign_up(self, payload):
         self.calls.append(("sign_up", payload))
         if "sign_up" in self.raise_on:
-            raise Expection("User already exists")
+            raise Exception("User already exists")
         return "ok"
 
-    def sign_in_with_password(self, *_):
-        return "ok"
+    def sign_in_with_password(self, payload):
+        self.calls.append(("sign_in_with_password", payload))
+        if "sign_in_with_password" in self.raise_on:
+            raise Exception("Invalid login")
+        return MockResponse(session=self.login_session_value)
 
     def sign_out(self):
+        self.calls.append(("sign_out",))
+        if "sign_out" in self.raise_on:
+            raise Exception("Auth sign out failed")
         return "ok"
 
-    def update_user(self, *_):
+    def update_user(self, payload):
+        self.calls.append(("update_user", payload))
+        if "update_user" in self.raise_on:
+            raise Exception("Update failed")
         return "ok"
 
     def get_user(self):
@@ -66,22 +75,32 @@ class MockAuth:
 
 
 class MockSupabaseClient:
-    def table(self, *_):
-        # Returnerar "låtsas-tabell" med sampledata
-        return MockTable([{"plant": "Monstera"}])
+    def __init__(self, table_data=None):
+        self.auth = MockAuth()
+        self.last_table_name = None
+        self.last_table = None
+        self.table_data = table_data if table_data is not None else [{"plant": "Monstera"}]
 
-    auth = MockAuth()
+    def table(self, name):
+       self.last_table_name = name
+       self.last_table = MockTable(self.table_data)
+       return self.last_table
 
 
 # =========================
-# Fixture (ska ligga på modulnivå, inte inuti klass)
+# Fixtures
 # =========================
-@pytest.fixture(autouse=True)
-def mock_supabase_client(mocker):
-    mock_client = MockSupabaseClient()
-    # Ersätter global supabaseClient i databaseConnection
-    mocker.patch.object(databaseConnection, "supabaseClient", mock_client)
+@pytest.fixture
+def mock_admin_client(mocker):
+    client = MockSupabaseClient()
+    mocker.patch.object(databaseConnection, "get_mock_admin_client", return_value=client)
+    return client
 
+@pytest.fixture
+def mock_token_client(mocker):
+    client = MockSupabaseClient()
+    mocker.patch.object(databaseConnection, "get_client_for_token", return_value=client)
+    return client
 
 # =========================
 # Tester
