@@ -103,14 +103,37 @@ def mock_token_client(mocker):
     return client
 
 # =========================
-# Tester
+# Tester: getUserPlants
 # =========================
-def test_get_user_plants_returns_data():
-    result = databaseConnection.getUserPlants("user123")
+def test_get_user_plants_returns_data_and_filters_by_user(mock_token_client):
+    result = databaseConnection.getUserPlants("user123", token="tkn")
+
     assert isinstance(result, list)
     assert result[0]["plant"] == "Monstera"
 
+    assert mock_token_client.last_table_name == "user_plants"
+    assert ("select", (("*",)) in mock_token_client.last_table.calls
+    assert ("eq", "user_id", "user123") in mock_token_client.last_table.calls
+    assert ("execute",) in mock_token_client.last_table.calls
 
+def test_get_user_plants_returns_none_on_error(mocker):
+    class ErrorClient(MockSupabaseClient):
+        def table(self, name):
+            t = super().table(name)
+
+            def boom():
+                raise Exception("DB down")
+
+            t.execute = boom
+            return t
+
+    mocker.patch.object(databaseConnection, "get_client_for_token", return_value=ErrorClient())
+    result = databaseConnection.getUserPlants("user123", token="tkn")
+    assert result is None
+
+# =========================
+# Tester: deleteUserPlant
+# =========================
 def test_delete_user_plant_returns_deleted_data():
     result = databaseConnection.deleteUserPlant(1, "user123")
     assert result[0]["plant"] == "Monstera"
