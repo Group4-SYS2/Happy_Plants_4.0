@@ -77,7 +77,7 @@ async def login(request: Request):
 async def login(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
     session = loginUser(email, password)
-    print(session)
+   # print(session)
 
     if session is not None:
         redirect = RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
@@ -154,14 +154,41 @@ async def myAccount(request: Request):
 async def allPlants(request: Request):
     current_user = get_current_user_from_cookie(request)
 
-    if current_user is not None:
-        plants = await getAllSpecies()
+    if current_user is None:
+        return RedirectResponse(url="/home", status_code=303)
 
-        return templates.TemplateResponse("allPlants.tpl", {"request": request, "plants" : plants, "email": current_user.user.email})
-    else:
-        print("no user found")
-        return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
+    plants = await getAllSpecies()
 
+    for plant in plants.get("data", []):
+        print("DEBUG keys:", plant.keys())
+        print("DEBUG growth:", plant.get("growth"))
+        break
+
+ 
+    for plant in plants.get("data", [])[:20]:  # begränsa till 20 för hastighet
+        try:
+            species_detail = await getSpeciesById(plant["id"])
+            data = species_detail.get("data", {})
+            growth = data.get("growth") or {}
+
+            light_value = growth.get("light")
+            water_value = growth.get("soil_humidity") or growth.get("atmospheric_humidity")
+
+        except Exception:
+            light_value = None
+            water_value = None
+
+        plant["light_text"] = scale_to_text(light_value)
+        plant["water_text"] = scale_to_text(water_value)
+
+    return templates.TemplateResponse(
+        "allPlants.tpl",
+        {
+            "request": request,
+            "plants": plants,
+            "email": current_user.user.email,
+        },
+    )
 
 @app.post("/addPlant")
 async def addPlant(
@@ -194,7 +221,10 @@ async def addPlant(
     return RedirectResponse(url="/myPlants", status_code=status.HTTP_303_SEE_OTHER)
 
 async def getAllSpecies():
-    resp = await http_client.get("https://trefle.io/api/v1/plants", params={"token": os.getenv("API_KEY")})
+    resp = await http_client.get(
+        "https://trefle.io/api/v1/species",
+        params={"token": os.getenv("API_KEY")}
+    )
     resp.raise_for_status()
     return jsonpickle.decode(resp.text)
 
@@ -259,3 +289,59 @@ async def add_plant(request: Request, req: AddPlantRequest):
 
 
 
+def scale_to_text(value):
+    if value is None:
+        return "Unknown"
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        return "Unknown"
+
+    if value <= 3:
+        return "Low"
+    if value <= 7:
+        return "Medium"
+    return "High"
+
+async def getSpeciesById(species_id: int):
+    resp = await http_client.get(
+        f"https://trefle.io/api/v1/species/{species_id}",
+        params={"token": os.getenv("API_KEY")}
+    )
+    resp.raise_for_status()
+    return jsonpickle.decode(resp.text)
+
+@app.get("/plant/{species_id}")
+async def plant_info(request: Request, species_id: int):
+    current_user = get_current_user_from_cookie(request)
+
+    if current_user is None:
+        return RedirectResponse(url="/login", status_code=303)
+
+    species = await getSpeciesById(species_id)
+
+    data = species.get("data", {})
+    growth = data.get("growth") or {}
+
+    light_value = growth.get("light")
+    water_value = (
+        growth.get("soil_humidity")
+        or growth.get("atmospheric_humidity")
+    )
+
+    plant_info = {
+        "common_name": data.get("common_name"),
+        "scientific_name": data.get("scientific_name"),
+        "family": data.get("family"),
+        "light_text": scale_to_text(light_value),
+        "water_text": scale_to_text(water_value),
+    }
+
+    return templates.TemplateResponse(
+        "plantInfo.tpl",
+        {
+            "request": request,
+            "plant": plant_info,
+            "email": current_user.user.email,
+        },
+    )

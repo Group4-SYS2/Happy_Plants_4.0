@@ -241,7 +241,10 @@
         <details class="plant-row" id='{{plant.row_id}}' style="background-color: {{ '#E8F5E9' if plant.id % 2 == 0 else '#E8F5E9' }};">
             <summary>
                 <div class="plant-summary-content">
-                    <span style="flex: 2;">🌿 {{ plant.common_name if plant.common_name else plant.scientific_name }}</span>
+<span style="flex: 2;">
+    🌿
+    {{ plant.common_name if plant.common_name else plant.scientific_name }}
+</span>
                     <button onclick="addPlant({{ plant.id }}, '{{ (plant.common_name or plant.scientific_name) | e }}')">Add</button>
                 </div>
             </summary>
@@ -249,6 +252,15 @@
             <div class="plant-details-extra">
                 <div><span class="detail-label">Scientific name:</span> {{ plant.scientific_name }}</div>
                 <div><span class="detail-label">Family:</span> {{ plant.family }}</div>
+                                <div>
+                    <span class="detail-label">Light need:</span>
+                    {{ plant.light_text }}
+                </div>
+
+                <div>
+                    <span class="detail-label">Water need:</span>
+                    {{ plant.water_text }}
+                </div>
                 <div style="margin-top: 10px;">
                     <button
                             class="tool-btn"
