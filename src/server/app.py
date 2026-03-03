@@ -11,9 +11,9 @@ from pydantic import BaseModel
 from fastapi import FastAPI, Request, Form, status
 from fastapi import HTTPException
 
-from database.databaseConnection import (
-    loginUser, registerUser, initialize, signOutUser,
-    getUserPlants, deleteUserPlant, changePassword, addUserPlant, get_client_for_token
+from src.server.database.databaseConnection import (
+    loginUser, registerUser, initialize, getCurrentUser, signOutUser,
+    getUserPlants, deleteUserPlant, changePassword, addUserPlant
 )
 from datetime import date
 from pathlib import Path
@@ -27,14 +27,20 @@ app = FastAPI()
 load_dotenv()
 
 # Mounts the app to a path, reason unclear
-app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
-
-# Define where the templates are stored
+# app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+# Here we define where the templates are stored.
+# We use templates because you can insert variables into
+# the HTML, CSS, or Javascript of the file to make it easier
+# to
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-
-http_client = httpx.AsyncClient()
-
-initialize()
+# Starts the database client.
+# NOTICE: Communication with the database client will have to be changed to at least
+# NOTICE: partly frontend for this app to function as expected
+#
+# initialize()
+# @app.on_event("startup")
+def startup_event():
+    initialize()
 
 @app.get("/")
 async def main(request: Request):
