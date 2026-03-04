@@ -11,8 +11,8 @@ from pydantic import BaseModel
 from fastapi import FastAPI, Request, Form, status
 from fastapi import HTTPException
 
-from src.server.database.databaseConnection import (
-    loginUser, registerUser, initialize, getCurrentUser, signOutUser,
+from database.databaseConnection import (
+    loginUser, registerUser, initialize, signOutUser,
     getUserPlants, deleteUserPlant, changePassword, addUserPlant
 )
 from datetime import date
