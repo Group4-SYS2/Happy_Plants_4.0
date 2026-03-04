@@ -164,3 +164,36 @@ def changePassword(access_token, new_password):
     except Exception as e:
         print("Change password error:", e)
         return str(e)
+
+def markPlantWatered(user_id, row_id, token):
+    client = get_client_for_token(token)
+
+    print("UPDATE DEBUG")
+    print("user_id:", user_id)
+    print("row_id:", row_id)  
+    print("CHECKING ROW EXISTS...")
+
+    check = (
+        client.table("user_plants")
+        .select("*")
+        .eq("row_id", row_id)
+        .execute()
+    )
+
+    print("ROW CHECK:", check)
+
+    try:
+        result = (
+            client.table("user_plants")
+            .update({"last_watered": str(date.today())})
+            .eq("user_id", user_id)
+            .eq("row_id", row_id)
+            .execute()
+        )
+
+        print("UPDATE RESULT:", result)
+        return result
+
+    except Exception as e:
+        print("UPDATE ERROR:", e)
+        return str(e)

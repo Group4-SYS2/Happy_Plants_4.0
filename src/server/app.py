@@ -13,9 +13,9 @@ from fastapi import HTTPException
 
 from database.databaseConnection import (
     loginUser, registerUser, initialize, signOutUser,
-    getUserPlants, deleteUserPlant, changePassword, addUserPlant, get_client_for_token
+    getUserPlants, deleteUserPlant, changePassword, addUserPlant, get_client_for_token, markPlantWatered
 )
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent  # src/server
@@ -123,15 +123,35 @@ async def myPlants(request: Request):
     token = request.cookies.get("access_token")
     current_user = get_current_user_from_cookie(request)
 
-    if current_user is not None:
-        user_id = current_user.user.id
-        plants = getUserPlants(user_id, token)
+    if current_user is None:
+        return RedirectResponse(url="/home", status_code=303)
 
-        return templates.TemplateResponse("myPlants.tpl", {"request": request, "plants" : plants, "email": current_user.user.email})
-    else:
-        print("no user found")
-        return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
+    user_id = current_user.user.id
+    plants = getUserPlants(user_id, token)
 
+    for plant in plants:
+        try:
+            species = await getSpeciesById(plant["plant_id"])
+            data = species.get("data", {})
+            growth = data.get("growth") or {}
+
+            humidity = (
+                growth.get("soil_humidity")
+                or growth.get("atmospheric_humidity")
+            )
+
+        except Exception:
+            humidity = None
+
+        plant["watering_status"] = build_watering_status(
+            plant.get("last_watered"),
+            humidity,
+        )
+
+    return templates.TemplateResponse(
+        "myPlants.tpl",
+        {"request": request, "plants": plants, "email": current_user.user.email},
+    )
 @app.delete("/myPlants/delete/{plant_id}")
 async def myPlantDelete(request: Request, plant_id: int):
     token = request.cookies.get("access_token")
@@ -219,7 +239,6 @@ async def addPlant(
         )
 
     return RedirectResponse(url="/myPlants", status_code=status.HTTP_303_SEE_OTHER)
-
 async def getAllSpecies():
     resp = await http_client.get(
         "https://trefle.io/api/v1/species",
@@ -345,3 +364,61 @@ async def plant_info(request: Request, species_id: int):
             "email": current_user.user.email,
         },
     )
+
+
+def humidity_to_days(value: int | None) -> int:
+    """Konverterar Trefle humidity → dagar mellan vattning"""
+    if value is None:
+        return 7
+
+    try:
+        value = int(value)
+    except:
+        return 7
+
+    if value <= 3:
+        return 14  # låg vattenbehov
+    if value <= 6:
+        return 7   # medium
+    return 3       # hög vattenbehov
+
+def build_watering_status(last_watered: str, humidity_value: int | None):
+    interval_days = humidity_to_days(humidity_value)
+
+    if not last_watered:
+        return {"percent": 100, "needs_water": True}
+
+    try:
+        last_date = datetime.strptime(last_watered, "%Y-%m-%d").date()
+    except Exception:
+        return {"percent": 100, "needs_water": True}
+
+    days_since = (date.today() - last_date).days
+    percent = min(int((days_since / interval_days) * 100), 100)
+
+    return {
+        "percent": percent,
+        "needs_water": days_since >= interval_days,
+        "days_since": days_since,
+        "interval_days": interval_days,
+    }
+
+@app.post("/myPlants/water/{row_id}")
+async def water_plant(request: Request, row_id: int):
+    print(" WATER ENDPOINT HIT", row_id)
+
+    token = request.cookies.get("access_token")
+    current_user = get_current_user_from_cookie(request)
+
+    if current_user is None:
+        print(" no user")
+        raise HTTPException(status_code=401)
+
+    user_id = current_user.user.id
+    print("user:", user_id)
+
+    result = markPlantWatered(user_id, row_id, token)
+
+    print("DB result:", result)
+
+    return RedirectResponse(url="/myPlants", status_code=303)
