@@ -1,4 +1,5 @@
 import os
+
 import requests
 import jsonpickle
 import httpx
@@ -11,9 +12,9 @@ from pydantic import BaseModel
 from fastapi import FastAPI, Request, Form, status
 from fastapi import HTTPException
 
-from database.databaseConnection import (
+from src.server.database.databaseConnection import (
     loginUser, registerUser, initialize, signOutUser,
-    getUserPlants, deleteUserPlant, changePassword, addUserPlant
+    getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, get_client_for_token
 )
 from datetime import date
 from pathlib import Path
@@ -138,12 +139,25 @@ async def myPlants(request: Request):
         print("no user found")
         return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
 
-@app.delete("/myPlants/delete/{plant_id}")
-async def myPlantDelete(request: Request, plant_id: int):
+@app.delete("/myPlants/delete/{row_id}")
+async def myPlantDelete(request: Request, row_id: int):
     token = request.cookies.get("access_token")
     current_user = get_current_user_from_cookie(request)
+
+    if current_user is None or token is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
     user_id = current_user.user.id
-    deleteUserPlant(plant_id, user_id, token)
+
+    deleted_rows, err = deleteUserPlantByRowId(row_id=row_id, user_id=user_id, token=token)
+
+    if err:
+        raise HTTPException(status_code=500, detail=err)
+
+    if not deleted_rows:
+        raise HTTPException(status_code=404, detail="No row deleted (wrong row_id or blocked by RLS).")
+
+    return {"ok": True, "deleted": len(deleted_rows)}
 
 @app.get("/account")
 async def myAccount(request: Request):
@@ -200,7 +214,12 @@ async def addPlant(
     return RedirectResponse(url="/myPlants", status_code=status.HTTP_303_SEE_OTHER)
 
 async def getAllSpecies():
-    resp = await http_client.get("https://trefle.io/api/v1/plants", params={"token": os.getenv("API_KEY")})
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            "https://trefle.io/api/v1/plants",
+            params={"token": os.getenv("API_KEY")},
+            timeout=20.0
+        )
     resp.raise_for_status()
     return jsonpickle.decode(resp.text)
 
@@ -218,7 +237,12 @@ def get_current_user_from_cookie(request: Request):
         return None
 
 async def searchForSpecies(searchTerm):
-    resp = await http_client.get("https://trefle.io/api/v1/plants", params={"token": os.getenv("API_KEY"), "q": searchTerm})
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            "https://trefle.io/api/v1/plants",
+            params={"token": os.getenv("API_KEY"), "q": searchTerm},
+            timeout=20.0
+        )
     resp.raise_for_status()
     return jsonpickle.decode(resp.text)
 

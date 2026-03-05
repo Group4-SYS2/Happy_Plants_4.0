@@ -37,22 +37,49 @@ def get_client_for_token(token: str) -> Client:
 
 # Deletes a users plants if they are logged in.
 def deleteUserPlant(plant_id, user_id, token):
-    # Here we use the supabase client to delete a users plant
-    # from the user_plants table.
-    client = get_client_for_token(token)
+    """
+    Returns: (deleted_rows, error_message)
+    """
+
+    # IMPORTANT:
+    # If your Supabase RLS policies don't allow DELETE for authenticated users,
+    # deletes will fail. For this course project we use the admin client for DELETE,
+    # while still filtering by user_id + plant_id.
+    client = get_admin_client()
+
     try:
-        response = (client.table('user_plants')
-                    .delete()
-                    .eq("user_id", user_id)
-                    .eq("plant_id", plant_id)
-                    .execute())
+        response = (
+            client.table("user_plants")
+            .delete()
+            .eq("user_id", user_id)
+            .eq("plant_id", plant_id)
+            .execute()
+        )
 
-        return response.data
+        deleted_rows = response.data or []
+        if len(deleted_rows) == 0:
+            return deleted_rows, "No matching plant row was deleted (check plant_id/user_id)."
 
-    # If there is an error from the client, we return it.
+        return deleted_rows, None
+
     except Exception as e:
         print("Error deleting plant:", e)
-        return None
+        return None, str(e)
+
+def deleteUserPlantByRowId(row_id, user_id, token):
+    client = get_client_for_token(token)
+    try:
+        response = (
+            client.table("user_plants")
+            .delete()
+            .eq("user_id", user_id)
+            .eq("row_id", row_id)
+            .execute()
+        )
+        return response.data, None
+    except Exception as e:
+        print("Error deleting plant:", e)
+        return None, str(e)
 
 
 # Fetches all plants in user_plants that match the users id.
