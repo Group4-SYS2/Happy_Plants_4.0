@@ -323,7 +323,7 @@
                     <button
                         class="tool-btn"
                         style="border-color: #d32f2f; color: #d32f2f;"
-                        onclick="deletePlant('{{ plant.plant_id }}', '{{plant.row_id}}')">
+                        onclick="deletePlant('{{ plant.row_id }}')">
                         Remove
                     </button>
 
@@ -342,29 +342,26 @@
 </body>
 
 <script>
-    async function deletePlant(plantId, index) {
+    async function deletePlant(rowId) {
         try {
-            const response = await fetch(`/myPlants/delete/` + plantId, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                    // Add Authorization header here if your endpoint requires a JWT
-                }
+            const response = await fetch(`/myPlants/delete/` + rowId, {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' }
             });
 
             if (response.ok) {
-                console.log(`Plant ${plantId} deleted successfully.`);
-                // Usually, you'd want to remove the element from the DOM here
-                // e.g., document.getElementById(`plant-${plantId}`).remove();
-                document.getElementById(index).remove();
+              document.getElementById(rowId).remove();
             } else {
+              let msg = response.statusText;
+              try {
                 const errorData = await response.json();
-                console.error('Failed to delete plant:', errorData.detail || response.statusText);
-                alert('Could not delete plant. Please try again.');
+                msg = errorData.detail || msg;
+              } catch (_) {}
+              alert('Could not delete plant: ' + msg);
             }
-        } catch (error) {
-            console.error('Network error while deleting plant:', error);
-        }
+      } catch (error) {
+        console.error('Network error while deleting plant:', error);
+      }
     }
 </script>
 </html>

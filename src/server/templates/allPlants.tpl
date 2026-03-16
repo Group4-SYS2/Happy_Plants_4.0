@@ -238,7 +238,7 @@
     <div class="plant-list-container">
         {% if plants %}
         {% for plant in plants.data %}
-        <details class="plant-row" id='{{plant.row_id}}' style="background-color: {{ '#E8F5E9' if plant.id % 2 == 0 else '#E8F5E9' }};">
+        <details class="plant-row" id="plant-{{ plant.id }}" style="background-color: {{ '#E8F5E9' if plant.id % 2 == 0 else '#E8F5E9' }};">
             <summary>
                 <div class="plant-summary-content">
 <span style="flex: 2;">
@@ -252,7 +252,7 @@
             <div class="plant-details-extra">
                 <div><span class="detail-label">Scientific name:</span> {{ plant.scientific_name }}</div>
                 <div><span class="detail-label">Family:</span> {{ plant.family }}</div>
-                                <div>
+                <div>
                     <span class="detail-label">Light need:</span>
                     {{ plant.light_text }}
                 </div>

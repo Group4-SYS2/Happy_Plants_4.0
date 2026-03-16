@@ -1,4 +1,5 @@
 import os
+
 import requests
 import jsonpickle
 import httpx
@@ -11,7 +12,7 @@ from pydantic import BaseModel
 from fastapi import FastAPI, Request, Form, status
 from fastapi import HTTPException
 
-from database.databaseConnection import (
+from src.server.database.databaseConnection import (
     loginUser, registerUser, initialize, signOutUser,
     getUserPlants, deleteUserPlant, changePassword, addUserPlant, get_client_for_token, markPlantWatered
 )
@@ -27,14 +28,20 @@ app = FastAPI()
 load_dotenv()
 
 # Mounts the app to a path, reason unclear
-app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
-
-# Define where the templates are stored
+# app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+# Here we define where the templates are stored.
+# We use templates because you can insert variables into
+# the HTML, CSS, or Javascript of the file to make it easier
+# to
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-
-http_client = httpx.AsyncClient()
-
-initialize()
+# Starts the database client.
+# NOTICE: Communication with the database client will have to be changed to at least
+# NOTICE: partly frontend for this app to function as expected
+#
+# initialize()
+# @app.on_event("startup")
+def startup_event():
+    initialize()
 
 @app.get("/")
 async def main(request: Request):
@@ -156,8 +163,21 @@ async def myPlants(request: Request):
 async def myPlantDelete(request: Request, plant_id: int):
     token = request.cookies.get("access_token")
     current_user = get_current_user_from_cookie(request)
+
+    if current_user is None or token is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
     user_id = current_user.user.id
-    deleteUserPlant(plant_id, user_id, token)
+
+    deleted_rows, err = deleteUserPlantByRowId(row_id=row_id, user_id=user_id, token=token)
+
+    if err:
+        raise HTTPException(status_code=500, detail=err)
+
+    if not deleted_rows:
+        raise HTTPException(status_code=404, detail="No row deleted (wrong row_id or blocked by RLS).")
+
+    return {"ok": True, "deleted": len(deleted_rows)}
 
 @app.get("/account")
 async def myAccount(request: Request):
@@ -240,10 +260,12 @@ async def addPlant(
 
     return RedirectResponse(url="/myPlants", status_code=status.HTTP_303_SEE_OTHER)
 async def getAllSpecies():
-    resp = await http_client.get(
-        "https://trefle.io/api/v1/species",
-        params={"token": os.getenv("API_KEY")}
-    )
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            "https://trefle.io/api/v1/plants",
+            params={"token": os.getenv("API_KEY")},
+            timeout=20.0
+        )
     resp.raise_for_status()
     return jsonpickle.decode(resp.text)
 
@@ -261,7 +283,12 @@ def get_current_user_from_cookie(request: Request):
         return None
 
 async def searchForSpecies(searchTerm):
-    resp = await http_client.get("https://trefle.io/api/v1/plants", params={"token": os.getenv("API_KEY"), "q": searchTerm})
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            "https://trefle.io/api/v1/plants",
+            params={"token": os.getenv("API_KEY"), "q": searchTerm},
+            timeout=20.0
+        )
     resp.raise_for_status()
     return jsonpickle.decode(resp.text)
 
