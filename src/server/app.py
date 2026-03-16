@@ -161,7 +161,7 @@ async def myPlants(request: Request):
         {"request": request, "plants": plants, "email": current_user.user.email},
     )
 @app.delete("/myPlants/delete/{plant_id}")
-async def myPlantDelete(request: Request, plant_id: int):
+async def myPlantDelete(request: Request, row_id: int):
     token = request.cookies.get("access_token")
     current_user = get_current_user_from_cookie(request)
 
