@@ -14,7 +14,7 @@ from fastapi import HTTPException
 
 from src.server.database.databaseConnection import (
     loginUser, registerUser, initialize, signOutUser,
-    getUserPlants, deleteUserPlant, changePassword, addUserPlant, get_client_for_token, markPlantWatered
+    getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, get_client_for_token, markPlantWatered
 )
 from datetime import date, datetime
 from pathlib import Path
@@ -34,6 +34,7 @@ load_dotenv()
 # the HTML, CSS, or Javascript of the file to make it easier
 # to
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+http_client = httpx.AsyncClient()
 # Starts the database client.
 # NOTICE: Communication with the database client will have to be changed to at least
 # NOTICE: partly frontend for this app to function as expected
