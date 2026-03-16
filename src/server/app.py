@@ -14,9 +14,9 @@ from fastapi import HTTPException
 
 from src.server.database.databaseConnection import (
     loginUser, registerUser, initialize, signOutUser,
-    getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, get_client_for_token
+    getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, get_client_for_token, markPlantWatered
 )
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent  # src/server
@@ -34,6 +34,7 @@ load_dotenv()
 # the HTML, CSS, or Javascript of the file to make it easier
 # to
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+http_client = httpx.AsyncClient()
 # Starts the database client.
 # NOTICE: Communication with the database client will have to be changed to at least
 # NOTICE: partly frontend for this app to function as expected
@@ -84,7 +85,7 @@ async def login(request: Request):
 async def login(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
     session = loginUser(email, password)
-    print(session)
+   # print(session)
 
     if session is not None:
         redirect = RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
@@ -130,16 +131,36 @@ async def myPlants(request: Request):
     token = request.cookies.get("access_token")
     current_user = get_current_user_from_cookie(request)
 
-    if current_user is not None:
-        user_id = current_user.user.id
-        plants = getUserPlants(user_id, token)
+    if current_user is None:
+        return RedirectResponse(url="/home", status_code=303)
 
-        return templates.TemplateResponse("myPlants.tpl", {"request": request, "plants" : plants, "email": current_user.user.email})
-    else:
-        print("no user found")
-        return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
+    user_id = current_user.user.id
+    plants = getUserPlants(user_id, token)
 
-@app.delete("/myPlants/delete/{row_id}")
+    for plant in plants:
+        try:
+            species = await getSpeciesById(plant["plant_id"])
+            data = species.get("data", {})
+            growth = data.get("growth") or {}
+
+            humidity = (
+                growth.get("soil_humidity")
+                or growth.get("atmospheric_humidity")
+            )
+
+        except Exception:
+            humidity = None
+
+        plant["watering_status"] = build_watering_status(
+            plant.get("last_watered"),
+            humidity,
+        )
+
+    return templates.TemplateResponse(
+        "myPlants.tpl",
+        {"request": request, "plants": plants, "email": current_user.user.email},
+    )
+@app.delete("/myPlants/delete/{plant_id}")
 async def myPlantDelete(request: Request, row_id: int):
     token = request.cookies.get("access_token")
     current_user = get_current_user_from_cookie(request)
@@ -174,14 +195,41 @@ async def myAccount(request: Request):
 async def allPlants(request: Request):
     current_user = get_current_user_from_cookie(request)
 
-    if current_user is not None:
-        plants = await getAllSpecies()
+    if current_user is None:
+        return RedirectResponse(url="/home", status_code=303)
 
-        return templates.TemplateResponse("allPlants.tpl", {"request": request, "plants" : plants, "email": current_user.user.email})
-    else:
-        print("no user found")
-        return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
+    plants = await getAllSpecies()
 
+    for plant in plants.get("data", []):
+        print("DEBUG keys:", plant.keys())
+        print("DEBUG growth:", plant.get("growth"))
+        break
+
+ 
+    for plant in plants.get("data", [])[:20]:  # begränsa till 20 för hastighet
+        try:
+            species_detail = await getSpeciesById(plant["id"])
+            data = species_detail.get("data", {})
+            growth = data.get("growth") or {}
+
+            light_value = growth.get("light")
+            water_value = growth.get("soil_humidity") or growth.get("atmospheric_humidity")
+
+        except Exception:
+            light_value = None
+            water_value = None
+
+        plant["light_text"] = scale_to_text(light_value)
+        plant["water_text"] = scale_to_text(water_value)
+
+    return templates.TemplateResponse(
+        "allPlants.tpl",
+        {
+            "request": request,
+            "plants": plants,
+            "email": current_user.user.email,
+        },
+    )
 
 @app.post("/addPlant")
 async def addPlant(
@@ -212,7 +260,6 @@ async def addPlant(
         )
 
     return RedirectResponse(url="/myPlants", status_code=status.HTTP_303_SEE_OTHER)
-
 async def getAllSpecies():
     async with httpx.AsyncClient() as client:
         resp = await client.get(
@@ -289,3 +336,117 @@ async def add_plant(request: Request, req: AddPlantRequest):
 
 
 
+def scale_to_text(value):
+    if value is None:
+        return "Unknown"
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        return "Unknown"
+
+    if value <= 3:
+        return "Low"
+    if value <= 7:
+        return "Medium"
+    return "High"
+
+async def getSpeciesById(species_id: int):
+    resp = await http_client.get(
+        f"https://trefle.io/api/v1/species/{species_id}",
+        params={"token": os.getenv("API_KEY")}
+    )
+    resp.raise_for_status()
+    return jsonpickle.decode(resp.text)
+
+@app.get("/plant/{species_id}")
+async def plant_info(request: Request, species_id: int):
+    current_user = get_current_user_from_cookie(request)
+
+    if current_user is None:
+        return RedirectResponse(url="/login", status_code=303)
+
+    species = await getSpeciesById(species_id)
+
+    data = species.get("data", {})
+    growth = data.get("growth") or {}
+
+    light_value = growth.get("light")
+    water_value = (
+        growth.get("soil_humidity")
+        or growth.get("atmospheric_humidity")
+    )
+
+    plant_info = {
+        "common_name": data.get("common_name"),
+        "scientific_name": data.get("scientific_name"),
+        "family": data.get("family"),
+        "light_text": scale_to_text(light_value),
+        "water_text": scale_to_text(water_value),
+    }
+
+    return templates.TemplateResponse(
+        "plantInfo.tpl",
+        {
+            "request": request,
+            "plant": plant_info,
+            "email": current_user.user.email,
+        },
+    )
+
+
+def humidity_to_days(value: int | None) -> int:
+    """Konverterar Trefle humidity → dagar mellan vattning"""
+    if value is None:
+        return 7
+
+    try:
+        value = int(value)
+    except:
+        return 7
+
+    if value <= 3:
+        return 14  # låg vattenbehov
+    if value <= 6:
+        return 7   # medium
+    return 3       # hög vattenbehov
+
+def build_watering_status(last_watered: str, humidity_value: int | None):
+    interval_days = humidity_to_days(humidity_value)
+
+    if not last_watered:
+        return {"percent": 100, "needs_water": True}
+
+    try:
+        last_date = datetime.strptime(last_watered, "%Y-%m-%d").date()
+    except Exception:
+        return {"percent": 100, "needs_water": True}
+
+    days_since = (date.today() - last_date).days
+    percent = min(int((days_since / interval_days) * 100), 100)
+
+    return {
+        "percent": percent,
+        "needs_water": days_since >= interval_days,
+        "days_since": days_since,
+        "interval_days": interval_days,
+    }
+
+@app.post("/myPlants/water/{row_id}")
+async def water_plant(request: Request, row_id: int):
+    print(" WATER ENDPOINT HIT", row_id)
+
+    token = request.cookies.get("access_token")
+    current_user = get_current_user_from_cookie(request)
+
+    if current_user is None:
+        print(" no user")
+        raise HTTPException(status_code=401)
+
+    user_id = current_user.user.id
+    print("user:", user_id)
+
+    result = markPlantWatered(user_id, row_id, token)
+
+    print("DB result:", result)
+
+    return RedirectResponse(url="/myPlants", status_code=303)

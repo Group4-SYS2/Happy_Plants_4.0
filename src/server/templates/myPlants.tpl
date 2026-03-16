@@ -203,6 +203,30 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+
+        .watering-wrapper {
+            margin-top: 10px;
+        }
+
+        .watering-bar {
+            width: 220px;
+            height: 16px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #999;
+        }
+
+        .watering-fill {
+            height: 100%;
+            transition: width 0.4s ease;
+        }
+
+        .watering-text {
+            font-size: 0.85rem;
+            margin-top: 4px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -242,7 +266,20 @@
         <details class="plant-row" id='{{plant.row_id}}'>
             <summary>
                 <div class="plant-summary-content">
-                    <span style="flex: 2;">🌿 {{ plant.common_name if plant.common_name else plant.scientific_name }}</span>
+                    <span style="flex: 2;">
+                        🌿 {{ plant.common_name if plant.common_name else plant.scientific_name }}
+                    </span>
+
+                    <span style="flex: 1; text-align: center; font-size: 0.85rem;">
+                        {% if plant.watering_status and plant.watering_status.needs_water %}
+                            🔴 Needs water
+                        {% elif plant.watering_status %}
+                            🟢 OK
+                        {% else %}
+                            ⚪ Unknown
+                        {% endif %}
+                    </span>
+
                     <span style="flex: 1; text-align: right; font-size: 0.8rem; color: #555;">
                         Last watered: {{ plant.last_watered }} ▾
                     </span>
@@ -251,13 +288,45 @@
 
             <div class="plant-details-extra">
                 <div><span class="detail-label">Plant ID:</span> {{ plant.plant_id }}</div>
-                <div style="margin-top: 10px;">
+                                <!-- Watering status -->
+                {% if plant.watering_status %}
+                <div class="watering-wrapper">
+                    <div class="watering-bar">
+                        <div class="watering-fill"
+                            style="width: {{ plant.watering_status.percent }}%;
+                                    background-color:
+                                        {% if plant.watering_status.percent < 50 %}
+                                            #4caf50
+                                        {% elif plant.watering_status.percent < 80 %}
+                                            #ff9800
+                                        {% else %}
+                                            #f44336
+                                        {% endif %};">
+                        </div>
+                    </div>
+
+                    <div class="watering-text">
+                        {{ plant.watering_status.days_since }} days since watering
+                    </div>
+                </div>
+                {% endif %}
+                <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+
+                    <!-- Water button -->
+                    <form method="post" action="/myPlants/water/{{ plant.row_id }}">
+                        <button class="tool-btn" type="submit">
+                            💧 Mark as watered
+                        </button>
+                    </form>
+
+                    <!-- Remove button -->
                     <button
-                            class="tool-btn"
-                            style="border-color: #d32f2f; color: #d32f2f;"
-                            onclick="deletePlant('{{ plant.row_id }}')">
+                        class="tool-btn"
+                        style="border-color: #d32f2f; color: #d32f2f;"
+                        onclick="deletePlant('{{ plant.row_id }}')">
                         Remove
                     </button>
+
                 </div>
             </div>
         </details>
