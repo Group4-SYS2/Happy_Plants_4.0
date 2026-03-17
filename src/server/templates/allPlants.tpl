@@ -290,7 +290,7 @@
           const data = await response.json();
 
           if (response.ok && data.ok) {
-              window.location.href = " /myPlants";
+              alert("Plant successfully added to your library🌱");
           } else {
               console.error('Failed to add plant:', data);
               alert('Could not add plant: ' + (data.error || response.statusText));
