@@ -26,8 +26,8 @@ def get_admin_client() -> Client:
     return create_client(supabaseURL, supabaseKey)
   
 def initialize():
-    supabaseKey = os.getenv('SUPABASEKEY')
-    supabaseURL = os.getenv('SUPABASEURL')
+    if not supabaseKey or not supabaseURL:
+        raise ValueError("Missing SUPABASEKEY or SUPABASEURL in environment variables")
 
 def get_client_for_token(token: str) -> Client:
     """Skapar en Supabase-klient med användarens session"""

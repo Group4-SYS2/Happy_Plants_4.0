@@ -40,7 +40,7 @@ http_client = httpx.AsyncClient()
 # NOTICE: partly frontend for this app to function as expected
 #
 # initialize()
-# @app.on_event("startup")
+@app.on_event("startup")
 def startup_event():
     initialize()
 
@@ -121,7 +121,7 @@ async def register(request: Request, email: str = Form(), password: str = Form()
     response = registerUser(email, password)
 
     if response == "success":
-        return RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
     else:
         print(response)
         return templates.TemplateResponse("register.tpl", {"request": request, "errorCode": response})

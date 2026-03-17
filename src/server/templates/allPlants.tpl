@@ -261,7 +261,7 @@
                     <span class="detail-label">Water need:</span>
                     {{ plant.water_text }}
                 </div>
-          
+
             </div>
         </details>
         {% endfor %}
