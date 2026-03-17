@@ -290,8 +290,7 @@
           const data = await response.json();
 
           if (response.ok && data.ok) {
-              console.log(`Plant ${plantId} added successfully.`);
-              alert("Plant added!");
+              window.location.href = " /myPlants";
           } else {
               console.error('Failed to add plant:', data);
               alert('Could not add plant: ' + (data.error || response.statusText));
