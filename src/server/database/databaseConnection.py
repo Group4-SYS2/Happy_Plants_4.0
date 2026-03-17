@@ -101,7 +101,7 @@ def getUserPlants(user_id, token):
 
 
 # Adds a plant to the user's library (user_plants table)
-def addUserPlant(user_id: str, plant_id: int, common_name: str, token):
+def addUserPlant(user_id: str, plant_id: int, common_name: str, token: str):
     client = get_client_for_token(token)
     try:
         payload = {

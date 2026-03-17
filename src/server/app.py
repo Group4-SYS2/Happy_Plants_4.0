@@ -160,7 +160,7 @@ async def myPlants(request: Request):
         "myPlants.tpl",
         {"request": request, "plants": plants, "email": current_user.user.email},
     )
-@app.delete("/myPlants/delete/{plant_id}")
+@app.delete("/myPlants/delete/{row_id}")
 async def myPlantDelete(request: Request, row_id: int):
     token = request.cookies.get("access_token")
     current_user = get_current_user_from_cookie(request)
@@ -231,35 +231,36 @@ async def allPlants(request: Request):
         },
     )
 
-@app.post("/addPlant")
-async def addPlant(
-    request: Request,
-    plant_id: int = Form(...),
-    common_name: str = Form(...),
-    last_watered: str = Form(None)   # optional, format: YYYY-MM-DD
-):
-    current_user = get_current_user_from_cookie(request)
+# @app.post("/addPlant")
+# async def addPlant(
+#     request: Request,
+#     plant_id: int = Form(...),
+#     common_name: str = Form(...),
+#     last_watered: str = Form(None)   # optional, format: YYYY-MM-DD
+# ):
+#     current_user = get_current_user_from_cookie(request)
+#
+#     if current_user is None:
+#         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+#
+#     user_id = current_user.user.id
+#
+#     result = addUserPlant(
+#         user_id=user_id,
+#         plant_id=plant_id,
+#         common_name=common_name,
+#         last_watered=last_watered
+#     )
+#
+#     # If insert failed, you can show an error page or return to allPlants with an error query param.
+#     if isinstance(result, str) and "error" in result.lower():
+#         return templates.TemplateResponse(
+#             "allPlants.tpl",
+#             {"request": request, "error": result, "email": current_user.user.email, "plants": await getAllSpecies()}
+#         )
+#
+#     return RedirectResponse(url="/myPlants", status_code=status.HTTP_303_SEE_OTHER)
 
-    if current_user is None:
-        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
-
-    user_id = current_user.user.id
-
-    result = addUserPlant(
-        user_id=user_id,
-        plant_id=plant_id,
-        common_name=common_name,
-        last_watered=last_watered
-    )
-
-    # If insert failed, you can show an error page or return to allPlants with an error query param.
-    if isinstance(result, str) and "error" in result.lower():
-        return templates.TemplateResponse(
-            "allPlants.tpl",
-            {"request": request, "error": result, "email": current_user.user.email, "plants": await getAllSpecies()}
-        )
-
-    return RedirectResponse(url="/myPlants", status_code=status.HTTP_303_SEE_OTHER)
 async def getAllSpecies():
     async with httpx.AsyncClient() as client:
         resp = await client.get(

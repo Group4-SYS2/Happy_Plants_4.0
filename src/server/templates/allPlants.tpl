@@ -261,14 +261,7 @@
                     <span class="detail-label">Water need:</span>
                     {{ plant.water_text }}
                 </div>
-                <div style="margin-top: 10px;">
-                    <button
-                            class="tool-btn"
-                            style="border-color: #d32f2f; color: #d32f2f;"
-                            onclick="deletePlant('{{ plant.plant_id }}', '{{plant.row_id}}')">
-                        Remove
-                    </button>
-                </div>
+          
             </div>
         </details>
         {% endfor %}
