@@ -140,17 +140,17 @@ def test_get_user_plants_returns_none_on_error(mocker):
 # =========================
 # Tester: deleteUserPlant
 # =========================
-def test_delete_user_plant_calls_delete_and_fillers(mock_token_client):
-    result = databaseConnection.deleteUserPlant(plant_id=1, user_id="user123", token="tkn")
+def test_delete_user_plant_calls_delete_and_fillers(mock_admin_client):
+    result = databaseConnection.deleteUserPlant(plant_id=1, user_id="user123", token="tkn", client=mock_admin_client)
 
-    assert result[0]["plant"] == "Monstera"
-    assert mock_token_client.last_table_name == "user_plants"
-    assert ("delete",) in mock_token_client.last_table.calls
-    assert ("eq", "user_id", "user123") in mock_token_client.last_table.calls
-    assert ("eq", "plant_id", 1) in mock_token_client.last_table.calls
-    assert ("execute",) in mock_token_client.last_table.calls
+    assert result[0][0]["plant"] == "Monstera"
+    assert mock_admin_client.last_table_name == "user_plants"
+    assert ("delete",) in mock_admin_client.last_table.calls
+    assert ("eq", "user_id", "user123") in mock_admin_client.last_table.calls
+    assert ("eq", "plant_id", 1) in mock_admin_client.last_table.calls
+    assert ("execute",) in mock_admin_client.last_table.calls
 
-def test_delete_user_plant_returns_none_on_error(mocker):
+def test_delete_user_plant_returns_none_on_error(mocker, mock_token_client):
     class ErrorClient(MockSupabaseClient):
         def table(self, name):
             t = super().table(name)
@@ -161,9 +161,9 @@ def test_delete_user_plant_returns_none_on_error(mocker):
             t.execute = boom
             return t
 
-    mocker.patch.object(databaseConnection, "get_client_for_token", return_value=ErrorClient())
-    result = databaseConnection.deleteUserPlant(plant_id=1, user_id="user123", token="tkn")
-    assert result is None
+    mocker.patch.object(databaseConnection, "get_admin_client", return_value=ErrorClient())
+    result = databaseConnection.deleteUserPlant(plant_id=1, user_id="user123", token="tkn", client=None)
+    assert result[0] is None
 
 # =========================
 # Tester: addUserPlant

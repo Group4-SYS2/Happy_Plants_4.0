@@ -36,7 +36,7 @@ def get_client_for_token(token: str) -> Client:
     return client
 
 # Deletes a users plants if they are logged in.
-def deleteUserPlant(plant_id, user_id, token):
+def deleteUserPlant(plant_id, user_id, token, client):
     """
     Returns: (deleted_rows, error_message)
     """
@@ -45,7 +45,8 @@ def deleteUserPlant(plant_id, user_id, token):
     # If your Supabase RLS policies don't allow DELETE for authenticated users,
     # deletes will fail. For this course project we use the admin client for DELETE,
     # while still filtering by user_id + plant_id.
-    client = get_admin_client()
+    if client is None:
+        client = get_admin_client()
 
     try:
         response = (
