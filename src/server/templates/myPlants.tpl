@@ -287,7 +287,7 @@
             </summary>
 
             <div class="plant-details-extra">
-                <div><span class="detail-label">Plant ID:</span> {{ plant.plant_id }}</div>
+                
                                 <!-- Watering status -->
                 {% if plant.watering_status %}
                 <div class="watering-wrapper">
