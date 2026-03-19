@@ -396,7 +396,6 @@
             const data = await response.json();
 
             if (response.ok && data.ok) {
-                alert("Plant renamed 🌱");
                 window.location.reload();
             } else {
                 alert("Could not rename plant: " + (data.error || response.statusText));
