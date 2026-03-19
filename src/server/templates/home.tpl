@@ -100,7 +100,7 @@
 
         <p>My Happy Plants utilizes information retrieved from Trefle.io, which was an open and free API offering data on over one million plant species and hybrids.</p>
 
-        <p>My Happy Plants features a colorful graphical user interface developed in JavaFX with illustrated plant imagery, and allows users to search through tens of thousands of plants, name them, and add them to their personal library.</p>
+        <p>My Happy Plants features a colorful graphical user interface developed in Python, and allows users to search through tens of thousands of plants, name them, and add them to their personal library.</p>
 
         <p>My Happy Plants also reminds the user when it is time to water, based on calculations done behind the scene.</p>
 
