@@ -372,6 +372,40 @@
       }
     }
 
-    
+    async function renamePlant(rowId, currentName) {
+        const newName = prompt("Enter a new name for your plant:", currentName);
+
+        if (newName === null) {
+            return;
+        }
+
+        if(!newName.trim()) {
+            alert("Name cannot be empty.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/myPlants/rename/${rowId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    new_name: newName
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.ok) {
+                alert("Plant renamed 🌱");
+                window.location.reload();
+            } else {
+                alert("Could not rename plant: " + (data.error || response.statusText));
+            }
+
+        } catch (error) {
+            console.error("Network error while renaming plant:", error);
+            alert("Network/server error when renaming plant.");
+        }
+    }
 </script>
 </html>
