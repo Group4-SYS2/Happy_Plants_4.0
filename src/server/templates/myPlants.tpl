@@ -287,7 +287,7 @@
             </summary>
 
             <div class="plant-details-extra">
-                
+
                                 <!-- Watering status -->
                 {% if plant.watering_status %}
                 <div class="watering-wrapper">
