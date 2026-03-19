@@ -14,7 +14,8 @@ from fastapi import HTTPException
 
 from src.server.database.databaseConnection import (
     loginUser, registerUser, initialize, signOutUser,
-    getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, get_client_for_token, markPlantWatered
+    getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, get_client_for_token, markPlantWatered,
+    renameUserPlant
 )
 from datetime import date, datetime
 from pathlib import Path
@@ -299,6 +300,9 @@ async def searchForSpecies(searchTerm):
 class PasswordChangeRequest(BaseModel):
     new_password: str
 
+class RenamePlantRequest(BaseModel):
+    new_name: str
+
 # This method translates the received JSON from the body of the request
 # to an PasswordChangeRequest object with a new_password attribute
 @app.post("/account/change_password")
@@ -451,3 +455,26 @@ async def water_plant(request: Request, row_id: int):
     print("DB result:", result)
 
     return RedirectResponse(url="/myPlants", status_code=303)
+
+@app.post("/myPlants/rename/{row_id}")
+async def rename_plant(request: Request, row_id: int, req: RenamePlantRequest):
+
+    token = request.cookies.get("access_token")
+    current_user = get_current_user_from_cookie(request)
+
+    if current_user is None or token is None:
+        return {"ok": False, "error": "NOT_LOGGED_IN"}
+
+    new_name = req.new_name.strip()
+
+    if not new_name:
+        return {"ok": False, "error": "Name cannot be empty"}
+
+    user_id = current_user.user.id
+
+    result = renameUserPlant(user_id, row_id, new_name, token)
+
+    if isinstance(result, str):
+        return {"ok": False, "error": result}
+
+    return {"ok": True}

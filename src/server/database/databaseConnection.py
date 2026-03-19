@@ -226,3 +226,21 @@ def markPlantWatered(user_id, row_id, token):
     except Exception as e:
         print("UPDATE ERROR:", e)
         return str(e)
+
+def renameUserPlant(user_id, row_id, new_name, token):
+    client = get_client_for_token(token)
+
+    try:
+        result = (
+            client.table("user_plants")
+            .update({"common_name": new_name})
+            .eq("user_id", user_id)
+            .eq("row_id", row_id)
+            .execute()
+        )
+
+        return result.data
+
+    except Exception as e:
+        print("Rename error:", e)
+        return str(e)
