@@ -13,7 +13,7 @@ def test_add_plant_endpoint_exists():
         {"user": type("User", (), {"id": 1})()}
     )()
 
-    with patch("src.server.app.get_current_user_from_cookie", return_value=fake_user), \
+    with patch("src.server.app.get_current_user_from_cookie", return_value=None), \
          patch("src.server.app.add_plant", return_value=[]):
 
         response = client.post(
@@ -25,7 +25,7 @@ def test_add_plant_endpoint_exists():
         )
 
     assert response.status_code == 200
-    assert response.json()["ok"] is True
+    assert response.json()["error"] == "NOT_LOGGED_IN"
 
 
 def test_add_plant_rejects_wrong_types():
@@ -35,7 +35,7 @@ def test_add_plant_rejects_wrong_types():
         {"user": type("User", (), {"id": 1})()}
     )()
 
-    with patch("src.server.app.getCurrentUser", return_value=fake_user):
+    with patch("src.server.app.get_current_user_from_cookie", return_value=fake_user):
         response = client.post(
             "/myPlants/addPlant",
             json={
