@@ -13,8 +13,8 @@ def test_add_plant_endpoint_exists():
         {"user": type("User", (), {"id": 1})()}
     )()
 
-    with patch("src.server.app.getCurrentUser", return_value=fake_user), \
-         patch("src.server.app.addUserPlant", return_value=[]):
+    with patch("src.server.app.get_current_user_from_cookie", return_value=fake_user), \
+         patch("src.server.app.add_plant", return_value=[]):
 
         response = client.post(
             "/myPlants/addPlant",

@@ -36,7 +36,7 @@ def get_client_for_token(token: str) -> Client:
     return client
 
 # Deletes a users plants if they are logged in.
-def deleteUserPlant(plant_id, user_id, token, client):
+def deleteUserPlant(plant_id, user_id, token, client=None):
     """
     Returns: (deleted_rows, error_message)
     """
@@ -84,8 +84,9 @@ def deleteUserPlantByRowId(row_id, user_id, token):
 
 
 # Fetches all plants in user_plants that match the users id.
-def getUserPlants(user_id, token):
-    client = get_client_for_token(token) 
+def getUserPlants(user_id, token, client=None):
+    if client is None:
+        client = get_client_for_token(token)
 
     try:
         response = (client.table('user_plants')

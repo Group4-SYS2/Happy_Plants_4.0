@@ -45,11 +45,16 @@ class MockAuth:
 
 
 class MockSupabaseClient:
-    def table(self, *_):
-        # Returnerar "låtsas-tabell" med sampledata
-        return MockTable([{"plant": "Monstera"}])
+    def __init__(self, table_data=None):
+        self.auth = MockAuth()
+        self.last_table_name = None
+        self.last_table = None
+        self.table_data = table_data if table_data is not None else [{"plant": "Monstera"}]
 
-    auth = MockAuth()
+    def table(self, name):
+       self.last_table_name = name
+       self.last_table = MockTable(self.table_data)
+       return self.last_table
 
 
 # =========================
@@ -59,14 +64,16 @@ class MockSupabaseClient:
 def mock_supabase_client(mocker):
     mock_client = MockSupabaseClient()
     # Ersätter global supabaseClient i databaseConnection
-    mocker.patch.object(databaseConnection, "supabaseClient", mock_client)
+    mocker.patch.object(databaseConnection, "get_client_for_token", mock_client)
+    mocker.patch.object(databaseConnection, "get_admin_client", mock_client)
+    return mock_client
 
 
 # =========================
 # Tester
 # =========================
-def test_get_user_plants_returns_data():
-    result = databaseConnection.getUserPlants("user123")
+def test_get_user_plants_returns_data(mock_supabase_client):
+    result = databaseConnection.getUserPlants("user123", token="tkn", client=mock_supabase_client)
     assert isinstance(result, list)
     assert result[0]["plant"] == "Monstera"
 
@@ -87,7 +94,7 @@ def test_login_user_returns_success():
 
 
 def test_sign_out_user_returns_success():
-    result = databaseConnection.signOutUser()
+    result = databaseConnection.signOutUser(token="tkn")
     assert result == "success"
 
 
