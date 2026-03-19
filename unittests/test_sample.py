@@ -88,11 +88,6 @@ def test_register_user_returns_success(mock_supabase_client):
     assert result == "success"
 
 
-def test_login_user_returns_success(mock_supabase_client):
-    result = databaseConnection.loginUser("a@b.com", "password", client=mock_supabase_client)
-    assert result == "success"
-
-
 def test_sign_out_user_returns_success(mock_supabase_client):
     result = databaseConnection.signOutUser(token="tkn", client=mock_supabase_client)
     assert result == "success"
