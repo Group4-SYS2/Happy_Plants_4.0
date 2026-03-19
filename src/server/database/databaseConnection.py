@@ -132,8 +132,9 @@ def addUserPlant(user_id: str, plant_id: int, common_name: str, token: str):
 
 
 # Registers a new user
-def registerUser(email, password):
-    client = get_admin_client()
+def registerUser(email, password, client=None):
+    if client is None:
+        client = get_admin_client()
 
     # Here we use the supabase client to easily
     # register a new user.
@@ -153,12 +154,13 @@ def registerUser(email, password):
         return str(e)
 
 # Logs in a user if their email:password combo is correct.
-def loginUser(email, password):
+def loginUser(email, password, client=None):
     # We use the supabaseClient to sign in the user.
     # This will return a JWT token from supabase,
     # which can be used to do execute functions
     # specifically on the signed-in users account.
-    client = get_admin_client()
+    if client is None:
+        client = get_admin_client()
 
     try:
         response = client.auth.sign_in_with_password(
@@ -177,16 +179,18 @@ def loginUser(email, password):
 #def getCurrentUser():
  #   return supabaseClient.auth.get_user()
 
-def signOutUser(token):
-    client = get_client_for_token(token)
+def signOutUser(token, client=None):
+    if client is None:
+        client = get_client_for_token(token)
     try:
         client.auth.sign_out()
         return "success"
     except supabase.AuthApiError as e:
         return e.code
 
-def changePassword(access_token, new_password):
-    client = get_client_for_token(access_token)
+def changePassword(access_token, new_password, client=None):
+    if client is None:
+        client = get_client_for_token(access_token)
     try:
         client.auth.update_user({"password": new_password})
         return "success"

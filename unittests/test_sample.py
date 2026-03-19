@@ -78,26 +78,26 @@ def test_get_user_plants_returns_data(mock_supabase_client):
     assert result[0]["plant"] == "Monstera"
 
 
-def test_delete_user_plant_returns_deleted_data():
-    result = databaseConnection.deleteUserPlant(1, "user123")
-    assert result[0]["plant"] == "Monstera"
+def test_delete_user_plant_returns_deleted_data(mock_supabase_client):
+    result = databaseConnection.deleteUserPlant(1, "user123", token="tkn", client=mock_supabase_client)
+    assert result[0][0]["plant"] == "Monstera"
 
 
-def test_register_user_returns_success():
-    result = databaseConnection.registerUser("a@b.com", "password")
+def test_register_user_returns_success(mock_supabase_client):
+    result = databaseConnection.registerUser("a@b.com", "password", client=mock_supabase_client)
     assert result == "success"
 
 
-def test_login_user_returns_success():
-    result = databaseConnection.loginUser("a@b.com", "password")
+def test_login_user_returns_success(mock_supabase_client):
+    result = databaseConnection.loginUser("a@b.com", "password", client=mock_supabase_client)
     assert result == "success"
 
 
-def test_sign_out_user_returns_success():
-    result = databaseConnection.signOutUser(token="tkn")
+def test_sign_out_user_returns_success(mock_supabase_client):
+    result = databaseConnection.signOutUser(token="tkn", client=mock_supabase_client)
     assert result == "success"
 
 
-def test_change_password_returns_success():
-    result = databaseConnection.changePassword("newpassword")
+def test_change_password_returns_success(mock_supabase_client):
+    result = databaseConnection.changePassword(access_token="tkn", new_password="newpassword", client=mock_supabase_client)
     assert result == "success"
