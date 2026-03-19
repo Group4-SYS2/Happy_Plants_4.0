@@ -319,6 +319,14 @@
                         </button>
                     </form>
 
+                    <!-- Rename button -->
+                    <button
+                        class="tool-btn"
+                        type="button"
+                        onClick="renamePlant('{{plant.row_id}}', '{{(plant.common_name if plant.common_name else plant.scientific_name) | e }}')">
+                            Rename
+                    </button>
+
                     <!-- Remove button -->
                     <button
                         class="tool-btn"
@@ -363,5 +371,7 @@
         console.error('Network error while deleting plant:', error);
       }
     }
+
+    
 </script>
 </html>
