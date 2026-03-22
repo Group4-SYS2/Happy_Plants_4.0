@@ -17,8 +17,11 @@ from src.server.database.databaseConnection import (
     getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, get_client_for_token, markPlantWatered,
     renameUserPlant
 )
-from datetime import date, datetime
+
 from pathlib import Path
+
+from src.server.plant_functions import get_current_user_from_cookie, build_watering_status, getSpeciesById, \
+    getAllSpecies
 
 BASE_DIR = Path(__file__).resolve().parent  # src/server
 
@@ -35,7 +38,7 @@ load_dotenv()
 # the HTML, CSS, or Javascript of the file to make it easier
 # to
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-http_client = httpx.AsyncClient()
+
 # Starts the database client.
 # NOTICE: Communication with the database client will have to be changed to at least
 # NOTICE: partly frontend for this app to function as expected
@@ -262,38 +265,7 @@ async def allPlants(request: Request):
 #
 #     return RedirectResponse(url="/myPlants", status_code=status.HTTP_303_SEE_OTHER)
 
-async def getAllSpecies():
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            "https://trefle.io/api/v1/plants",
-            params={"token": os.getenv("API_KEY")},
-            timeout=20.0
-        )
-    resp.raise_for_status()
-    return jsonpickle.decode(resp.text)
 
-def get_current_user_from_cookie(request: Request):
-    token = request.cookies.get("access_token")
-
-    if not token:
-        return None
-
-    try:
-        client = get_client_for_token(token)
-        user = client.auth.get_user()
-        return user
-    except Exception:
-        return None
-
-async def searchForSpecies(searchTerm):
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            "https://trefle.io/api/v1/plants",
-            params={"token": os.getenv("API_KEY"), "q": searchTerm},
-            timeout=20.0
-        )
-    resp.raise_for_status()
-    return jsonpickle.decode(resp.text)
 
 # A class is created so that the /account/change_password endpoint can recognize the data sent to it
 # by using this class as a "base model"
@@ -355,13 +327,7 @@ def scale_to_text(value):
         return "Medium"
     return "High"
 
-async def getSpeciesById(species_id: int):
-    resp = await http_client.get(
-        f"https://trefle.io/api/v1/species/{species_id}",
-        params={"token": os.getenv("API_KEY")}
-    )
-    resp.raise_for_status()
-    return jsonpickle.decode(resp.text)
+
 
 @app.get("/plant/{species_id}")
 async def plant_info(request: Request, species_id: int):
@@ -399,42 +365,7 @@ async def plant_info(request: Request, species_id: int):
     )
 
 
-def humidity_to_days(value: int | None) -> int:
-    """Konverterar Trefle humidity → dagar mellan vattning"""
-    if value is None:
-        return 7
 
-    try:
-        value = int(value)
-    except:
-        return 7
-
-    if value <= 3:
-        return 14  # låg vattenbehov
-    if value <= 6:
-        return 7   # medium
-    return 3       # hög vattenbehov
-
-def build_watering_status(last_watered: str, humidity_value: int | None):
-    interval_days = humidity_to_days(humidity_value)
-
-    if not last_watered:
-        return {"percent": 100, "needs_water": True}
-
-    try:
-        last_date = datetime.strptime(last_watered, "%Y-%m-%d").date()
-    except Exception:
-        return {"percent": 100, "needs_water": True}
-
-    days_since = (date.today() - last_date).days
-    percent = min(int((days_since / interval_days) * 100), 100)
-
-    return {
-        "percent": percent,
-        "needs_water": days_since >= interval_days,
-        "days_since": days_since,
-        "interval_days": interval_days,
-    }
 
 @app.post("/myPlants/water/{row_id}")
 async def water_plant(request: Request, row_id: int):
