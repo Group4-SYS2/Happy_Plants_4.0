@@ -5,77 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Happy Plants - My Account</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
 
     <style>
-        :root {
-            --bg-green: #9cd49c;
-            --sidebar-border: #333;
-            --accent-green: #7cb342;
-            --glass-white: rgba(255, 255, 255, 0.2);
-            --input-bg: #e8f5e9;
-        }
-
-        body {
-            background-color: var(--bg-green);
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            font-family: 'Nunito', sans-serif;
-            color: #333;
-        }
-
-        /* Sidebar Navigation */
-        nav {
-            width: 280px;
-            background-color: #c5e1c5;
-            border-right: 2px solid var(--sidebar-border);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .nav-item {
-            padding: 30px 20px;
-            font-family: 'Fredoka One', cursive;
-            font-size: 1.8rem;
-            color: #333;
-            text-decoration: none;
-            border-bottom: 2px solid var(--sidebar-border);
-            transition: background 0.3s;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background-color: var(--accent-green);
-            color: white;
-        }
-
-        .sign-out-btn {
-            padding: 15px 20px;
-            font-family: 'Fredoka One', cursive;
-            font-size: 1.2rem;
-            color: #333;
-            text-decoration: none;
-            border-top: 2px solid var(--sidebar-border);
-            text-align: center;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: background 0.3s;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border-top: 2px solid var(--sidebar-border);
-            background-color: rgba(255, 255, 255, 0.1);
-            gap: 12px;
-        }
-
         /* Account Content Styles */
         main {
             flex-grow: 1;
             padding: 40px;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
         }
 
         .account-card {
@@ -160,11 +99,6 @@
             transform: translateY(3px);
         }
 
-        .sign-out-btn:hover {
-            background-color: #d32f2f;
-            color: white;
-        }
-
         .plant-decoration {
             position: absolute;
             font-size: 50px;
@@ -223,8 +157,8 @@
 
     <a href="/logout" class="sign-out-btn">Sign out</a>
     <div class="user-profile">
-        <img src="https://via.placeholder.com/50" style="width:50px; height:50px; border-radius:50%; border: 2px solid #333;">
-        <span style="font-size: 0.9rem; font-weight: bold;">{{email}}</span>
+        <img src="https://via.placeholder.com/50" class="profile-pic">
+        <span class="user-email">{{email}}</span>
     </div>
 </nav>
 

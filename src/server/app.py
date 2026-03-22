@@ -32,6 +32,8 @@ app = FastAPI()
 load_dotenv()
 
 #app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+# Lets us use the static folder for CSS templates
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 # Mounts the app to a path, reason unclear
 # app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
