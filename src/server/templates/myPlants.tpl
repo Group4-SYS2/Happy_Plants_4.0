@@ -6,6 +6,32 @@
     <title>My Happy Plants - My Plants</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
+
+    <style>
+        .watering-wrapper {
+            margin-top: 10px;
+        }
+
+        .watering-bar {
+            width: 220px;
+            height: 16px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #999;
+        }
+
+        .watering-fill {
+            height: 100%;
+            transition: width 0.4s ease;
+        }
+
+        .watering-text {
+            font-size: 0.85rem;
+            margin-top: 4px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
