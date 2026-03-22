@@ -31,7 +31,7 @@ app = FastAPI()
 # Loads the ..env file containing environment variables
 load_dotenv()
 
-app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+#app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 # Mounts the app to a path, reason unclear
 # app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
