@@ -14,7 +14,7 @@ from fastapi import HTTPException
 
 from src.server.database.databaseConnection import (
     loginUser, registerUser, initialize, signOutUser,
-    getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, get_client_for_token, markPlantWatered,
+    getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, markPlantWatered,
     renameUserPlant
 )
 
@@ -227,7 +227,7 @@ async def allPlants(request: Request):
         print("DEBUG growth:", plant.get("growth"))
         break
 
- 
+
     for plant in plants.get("data", [])[:20]:  # begränsa till 20 för hastighet
         try:
             species_detail = await getSpeciesById(plant["id"])
@@ -336,7 +336,6 @@ async def plant_info(request: Request, species_id: int):
             "email": current_user.user.email,
         },
     )
-
 
 
 
