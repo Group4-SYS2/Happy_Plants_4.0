@@ -5,89 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Happy Plants - Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
 
     <style>
-        :root {
-            --bg-green: #9cd49c;
-            --sidebar-border: #333;
-            --accent-green: #7cb342;
-            --glass-white: rgba(255, 255, 255, 0.2);
-        }
-
-        body {
-            background-color: var(--bg-green);
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            font-family: 'Nunito', sans-serif;
-            color: #333;
-        }
-
-        /* Side Navigation */
-        nav {
-            width: 280px;
-            background-color: #c5e1c5;
-            border-right: 2px solid var(--sidebar-border);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .nav-item {
-            padding: 30px 20px;
-            font-family: 'Fredoka One', cursive;
-            font-size: 1.8rem;
-            color: #333;
-            text-decoration: none;
-            border-bottom: 2px solid var(--sidebar-border);
-            transition: background 0.3s;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background-color: var(--accent-green);
-            color: white;
-        }
-
-        .sign-out-btn {
-            padding: 15px 20px;
-            font-family: 'Fredoka One', cursive;
-            font-size: 1.2rem;
-            color: #333;
-            text-decoration: none;
-            border-top: 2px solid var(--sidebar-border);
-            text-align: center;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: background 0.3s;
-        }
-
-        .sign-out-btn:hover {
-            background-color: #d32f2f;
-            color: white;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border-top: 2px solid var(--sidebar-border);
-            background-color: rgba(255, 255, 255, 0.1);
-            gap: 12px;
-        }
-
-        .profile-pic {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 2px solid var(--sidebar-border);
-            object-fit: cover;
-            background-color: white;
-        }
-
-        .user-email {
-            font-size: 0.9rem;
-            word-break: break-all;
-            font-weight: bold;
-        }
-
         main {
             flex-grow: 1;
             padding: 40px;
@@ -180,7 +100,7 @@
 
         <p>My Happy Plants utilizes information retrieved from Trefle.io, which was an open and free API offering data on over one million plant species and hybrids.</p>
 
-        <p>My Happy Plants features a colorful graphical user interface developed in JavaFX with illustrated plant imagery, and allows users to search through tens of thousands of plants, name them, and add them to their personal library.</p>
+        <p>My Happy Plants features a colorful graphical user interface developed in Python, and allows users to search through tens of thousands of plants, name them, and add them to their personal library.</p>
 
         <p>My Happy Plants also reminds the user when it is time to water, based on calculations done behind the scene.</p>
 
