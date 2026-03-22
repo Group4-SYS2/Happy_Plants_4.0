@@ -21,7 +21,7 @@ from src.server.database.databaseConnection import (
 from pathlib import Path
 
 from src.server.plant_functions import get_current_user_from_cookie, build_watering_status, getSpeciesById, \
-    getAllSpecies
+    getAllSpecies, scale_to_text
 
 BASE_DIR = Path(__file__).resolve().parent  # src/server
 
@@ -69,13 +69,18 @@ async def home(request: Request):
     # Redirects user to the home page,
     # status_code is 303 because that makes the redirect request a GET request
     return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
+##########################
+# Login and registration
+##########################
+
 @app.get("/logout")
 async def logout(request: Request):
     response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
-
     response.delete_cookie("access_token")
-
     return response
+
+
 @app.get("/login")
 async def login(request: Request):
     current_user = get_current_user_from_cookie(request)
@@ -85,6 +90,8 @@ async def login(request: Request):
     else:
         print("no user found")
         return templates.TemplateResponse("login.tpl", {"request": request})
+
+
 @app.post("/login")
 async def login(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
@@ -119,6 +126,8 @@ async def registerPage(request: Request):
     else:
         print("no user found")
         return templates.TemplateResponse("register.tpl", {"request": request})
+
+
 @app.post("/register")
 async def register(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
@@ -129,6 +138,11 @@ async def register(request: Request, email: str = Form(), password: str = Form()
     else:
         print(response)
         return templates.TemplateResponse("register.tpl", {"request": request, "errorCode": response})
+
+
+##########################
+# Plant Library and Actions
+##########################
 
 @app.get("/myPlants")
 async def myPlants(request: Request):
@@ -164,6 +178,8 @@ async def myPlants(request: Request):
         "myPlants.tpl",
         {"request": request, "plants": plants, "email": current_user.user.email},
     )
+
+
 @app.delete("/myPlants/delete/{row_id}")
 async def myPlantDelete(request: Request, row_id: int):
     token = request.cookies.get("access_token")
@@ -184,6 +200,7 @@ async def myPlantDelete(request: Request, row_id: int):
 
     return {"ok": True, "deleted": len(deleted_rows)}
 
+
 @app.get("/account")
 async def myAccount(request: Request):
     current_user = get_current_user_from_cookie(request)
@@ -194,6 +211,7 @@ async def myAccount(request: Request):
     else:
         print("no user found")
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
 
 @app.get("/allPlants")
 async def allPlants(request: Request):
@@ -235,37 +253,6 @@ async def allPlants(request: Request):
         },
     )
 
-# @app.post("/addPlant")
-# async def addPlant(
-#     request: Request,
-#     plant_id: int = Form(...),
-#     common_name: str = Form(...),
-#     last_watered: str = Form(None)   # optional, format: YYYY-MM-DD
-# ):
-#     current_user = get_current_user_from_cookie(request)
-#
-#     if current_user is None:
-#         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
-#
-#     user_id = current_user.user.id
-#
-#     result = addUserPlant(
-#         user_id=user_id,
-#         plant_id=plant_id,
-#         common_name=common_name,
-#         last_watered=last_watered
-#     )
-#
-#     # If insert failed, you can show an error page or return to allPlants with an error query param.
-#     if isinstance(result, str) and "error" in result.lower():
-#         return templates.TemplateResponse(
-#             "allPlants.tpl",
-#             {"request": request, "error": result, "email": current_user.user.email, "plants": await getAllSpecies()}
-#         )
-#
-#     return RedirectResponse(url="/myPlants", status_code=status.HTTP_303_SEE_OTHER)
-
-
 
 # A class is created so that the /account/change_password endpoint can recognize the data sent to it
 # by using this class as a "base model"
@@ -274,6 +261,11 @@ class PasswordChangeRequest(BaseModel):
 
 class RenamePlantRequest(BaseModel):
     new_name: str
+
+class AddPlantRequest(BaseModel):
+    plant_id: int
+    common_name: str
+
 
 # This method translates the received JSON from the body of the request
 # to an PasswordChangeRequest object with a new_password attribute
@@ -291,9 +283,7 @@ def change_password(request : Request, password_request : PasswordChangeRequest)
 
     return {"message": "Password updated"}
 
-class AddPlantRequest(BaseModel):
-    plant_id: int
-    common_name: str
+
 
 @app.post("/myPlants/addPlant")
 async def add_plant(request: Request, req: AddPlantRequest):
@@ -310,23 +300,6 @@ async def add_plant(request: Request, req: AddPlantRequest):
         return {"ok": True, "data": result}
 
     return {"ok": False, "error": result}
-
-
-
-def scale_to_text(value):
-    if value is None:
-        return "Unknown"
-    try:
-        value = int(value)
-    except (TypeError, ValueError):
-        return "Unknown"
-
-    if value <= 3:
-        return "Low"
-    if value <= 7:
-        return "Medium"
-    return "High"
-
 
 
 @app.get("/plant/{species_id}")
@@ -386,6 +359,7 @@ async def water_plant(request: Request, row_id: int):
     print("DB result:", result)
 
     return RedirectResponse(url="/myPlants", status_code=303)
+
 
 @app.post("/myPlants/rename/{row_id}")
 async def rename_plant(request: Request, row_id: int, req: RenamePlantRequest):

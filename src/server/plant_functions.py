@@ -86,3 +86,18 @@ def build_watering_status(last_watered: str, humidity_value: int | None):
         "interval_days": interval_days,
     }
 
+
+def scale_to_text(value):
+    if value is None:
+        return "Unknown"
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        return "Unknown"
+
+    if value <= 3:
+        return "Low"
+    if value <= 7:
+        return "Medium"
+    return "High"
+
