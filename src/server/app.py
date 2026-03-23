@@ -14,11 +14,14 @@ from fastapi import HTTPException
 
 from src.server.database.databaseConnection import (
     loginUser, registerUser, initialize, signOutUser,
-    getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, get_client_for_token, markPlantWatered,
+    getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, markPlantWatered,
     renameUserPlant
 )
-from datetime import date, datetime
+
 from pathlib import Path
+
+from src.server.plant_functions import get_current_user_from_cookie, build_watering_status, getSpeciesById, \
+    getAllSpecies, scale_to_text
 
 BASE_DIR = Path(__file__).resolve().parent  # src/server
 
@@ -28,6 +31,7 @@ app = FastAPI()
 # Loads the ..env file containing environment variables
 load_dotenv()
 
+#app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 # Lets us use the static folder for CSS templates
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
@@ -38,7 +42,7 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 # the HTML, CSS, or Javascript of the file to make it easier
 # to
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-http_client = httpx.AsyncClient()
+
 # Starts the database client.
 # NOTICE: Communication with the database client will have to be changed to at least
 # NOTICE: partly frontend for this app to function as expected
@@ -69,13 +73,18 @@ async def home(request: Request):
     # Redirects user to the home page,
     # status_code is 303 because that makes the redirect request a GET request
     return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
+##########################
+# Login and registration
+##########################
+
 @app.get("/logout")
 async def logout(request: Request):
     response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
-
     response.delete_cookie("access_token")
-
     return response
+
+
 @app.get("/login")
 async def login(request: Request):
     current_user = get_current_user_from_cookie(request)
@@ -85,6 +94,8 @@ async def login(request: Request):
     else:
         print("no user found")
         return templates.TemplateResponse("login.tpl", {"request": request})
+
+
 @app.post("/login")
 async def login(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
@@ -119,6 +130,8 @@ async def registerPage(request: Request):
     else:
         print("no user found")
         return templates.TemplateResponse("register.tpl", {"request": request})
+
+
 @app.post("/register")
 async def register(request: Request, email: str = Form(), password: str = Form()):
     print(email, password)
@@ -129,6 +142,11 @@ async def register(request: Request, email: str = Form(), password: str = Form()
     else:
         print(response)
         return templates.TemplateResponse("register.tpl", {"request": request, "errorCode": response})
+
+
+##########################
+# Plant Library and Actions
+##########################
 
 @app.get("/myPlants")
 async def myPlants(request: Request):
@@ -164,6 +182,8 @@ async def myPlants(request: Request):
         "myPlants.tpl",
         {"request": request, "plants": plants, "email": current_user.user.email},
     )
+
+
 @app.delete("/myPlants/delete/{row_id}")
 async def myPlantDelete(request: Request, row_id: int):
     token = request.cookies.get("access_token")
@@ -184,6 +204,7 @@ async def myPlantDelete(request: Request, row_id: int):
 
     return {"ok": True, "deleted": len(deleted_rows)}
 
+
 @app.get("/account")
 async def myAccount(request: Request):
     current_user = get_current_user_from_cookie(request)
@@ -194,6 +215,7 @@ async def myAccount(request: Request):
     else:
         print("no user found")
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
 
 @app.get("/allPlants")
 async def allPlants(request: Request):
@@ -209,7 +231,7 @@ async def allPlants(request: Request):
         print("DEBUG growth:", plant.get("growth"))
         break
 
- 
+
     for plant in plants.get("data", [])[:20]:  # begränsa till 20 för hastighet
         try:
             species_detail = await getSpeciesById(plant["id"])
@@ -235,68 +257,6 @@ async def allPlants(request: Request):
         },
     )
 
-# @app.post("/addPlant")
-# async def addPlant(
-#     request: Request,
-#     plant_id: int = Form(...),
-#     common_name: str = Form(...),
-#     last_watered: str = Form(None)   # optional, format: YYYY-MM-DD
-# ):
-#     current_user = get_current_user_from_cookie(request)
-#
-#     if current_user is None:
-#         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
-#
-#     user_id = current_user.user.id
-#
-#     result = addUserPlant(
-#         user_id=user_id,
-#         plant_id=plant_id,
-#         common_name=common_name,
-#         last_watered=last_watered
-#     )
-#
-#     # If insert failed, you can show an error page or return to allPlants with an error query param.
-#     if isinstance(result, str) and "error" in result.lower():
-#         return templates.TemplateResponse(
-#             "allPlants.tpl",
-#             {"request": request, "error": result, "email": current_user.user.email, "plants": await getAllSpecies()}
-#         )
-#
-#     return RedirectResponse(url="/myPlants", status_code=status.HTTP_303_SEE_OTHER)
-
-async def getAllSpecies():
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            "https://trefle.io/api/v1/plants",
-            params={"token": os.getenv("API_KEY")},
-            timeout=20.0
-        )
-    resp.raise_for_status()
-    return jsonpickle.decode(resp.text)
-
-def get_current_user_from_cookie(request: Request):
-    token = request.cookies.get("access_token")
-
-    if not token:
-        return None
-
-    try:
-        client = get_client_for_token(token)
-        user = client.auth.get_user()
-        return user
-    except Exception:
-        return None
-
-async def searchForSpecies(searchTerm):
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            "https://trefle.io/api/v1/plants",
-            params={"token": os.getenv("API_KEY"), "q": searchTerm},
-            timeout=20.0
-        )
-    resp.raise_for_status()
-    return jsonpickle.decode(resp.text)
 
 # A class is created so that the /account/change_password endpoint can recognize the data sent to it
 # by using this class as a "base model"
@@ -305,6 +265,11 @@ class PasswordChangeRequest(BaseModel):
 
 class RenamePlantRequest(BaseModel):
     new_name: str
+
+class AddPlantRequest(BaseModel):
+    plant_id: int
+    common_name: str
+
 
 # This method translates the received JSON from the body of the request
 # to an PasswordChangeRequest object with a new_password attribute
@@ -322,9 +287,7 @@ def change_password(request : Request, password_request : PasswordChangeRequest)
 
     return {"message": "Password updated"}
 
-class AddPlantRequest(BaseModel):
-    plant_id: int
-    common_name: str
+
 
 @app.post("/myPlants/addPlant")
 async def add_plant(request: Request, req: AddPlantRequest):
@@ -342,29 +305,6 @@ async def add_plant(request: Request, req: AddPlantRequest):
 
     return {"ok": False, "error": result}
 
-
-
-def scale_to_text(value):
-    if value is None:
-        return "Unknown"
-    try:
-        value = int(value)
-    except (TypeError, ValueError):
-        return "Unknown"
-
-    if value <= 3:
-        return "Low"
-    if value <= 7:
-        return "Medium"
-    return "High"
-
-async def getSpeciesById(species_id: int):
-    resp = await http_client.get(
-        f"https://trefle.io/api/v1/species/{species_id}",
-        params={"token": os.getenv("API_KEY")}
-    )
-    resp.raise_for_status()
-    return jsonpickle.decode(resp.text)
 
 @app.get("/plant/{species_id}")
 async def plant_info(request: Request, species_id: int):
@@ -402,42 +342,6 @@ async def plant_info(request: Request, species_id: int):
     )
 
 
-def humidity_to_days(value: int | None) -> int:
-    """Konverterar Trefle humidity → dagar mellan vattning"""
-    if value is None:
-        return 7
-
-    try:
-        value = int(value)
-    except:
-        return 7
-
-    if value <= 3:
-        return 14  # låg vattenbehov
-    if value <= 6:
-        return 7   # medium
-    return 3       # hög vattenbehov
-
-def build_watering_status(last_watered: str, humidity_value: int | None):
-    interval_days = humidity_to_days(humidity_value)
-
-    if not last_watered:
-        return {"percent": 100, "needs_water": True}
-
-    try:
-        last_date = datetime.strptime(last_watered, "%Y-%m-%d").date()
-    except Exception:
-        return {"percent": 100, "needs_water": True}
-
-    days_since = (date.today() - last_date).days
-    percent = min(int((days_since / interval_days) * 100), 100)
-
-    return {
-        "percent": percent,
-        "needs_water": days_since >= interval_days,
-        "days_since": days_since,
-        "interval_days": interval_days,
-    }
 
 @app.post("/myPlants/water/{row_id}")
 async def water_plant(request: Request, row_id: int):
@@ -458,6 +362,7 @@ async def water_plant(request: Request, row_id: int):
     print("DB result:", result)
 
     return RedirectResponse(url="/myPlants", status_code=303)
+
 
 @app.post("/myPlants/rename/{row_id}")
 async def rename_plant(request: Request, row_id: int, req: RenamePlantRequest):
