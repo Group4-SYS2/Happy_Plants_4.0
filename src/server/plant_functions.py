@@ -31,11 +31,11 @@ def get_current_user_from_cookie(request: Request):
     except Exception:
         return None
 
-async def searchForSpecies(searchTerm):
+async def search_for_species(search_term):
     async with httpx.AsyncClient() as client:
         resp = await client.get(
             "https://trefle.io/api/v1/plants",
-            params={"token": os.getenv("API_KEY"), "q": searchTerm},
+            params={"token": os.getenv("API_KEY"), "q": search_term},
             timeout=20.0
         )
     resp.raise_for_status()

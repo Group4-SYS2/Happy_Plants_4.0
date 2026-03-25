@@ -30,6 +30,11 @@
         <button class="tool-btn">Expand all</button>
         <button class="tool-btn">Collapse all</button>
 
+        <input
+    type="text"
+    id="searchInput"
+    placeholder="Search plants..."
+>
         <span class="sort-label">Sort by:</span>
         <select>
             <option>Common name</option>
@@ -103,6 +108,67 @@
           alert("Network/server error when adding plant.");
       }
   }
+
+  let timeout = null;
+
+document.getElementById("searchInput").addEventListener("input", function() {
+    const query = this.value;
+
+    clearTimeout(timeout);
+
+    timeout = setTimeout(() => {
+        searchPlants(query);
+    }, 300);
+});
+
+async function searchPlants(query) {
+    if (!query) {
+    location.reload();
+    return;
+}
+
+    try {
+        const response = await fetch(`/api/searchPlants?search=${encodeURIComponent(query)}`);
+        const data = await response.json();
+
+        renderPlants(data.data);
+
+    } catch (error) {
+        console.error("Search error:", error);
+    }
+}
+
+function renderPlants(plants) {
+    const container = document.querySelector(".plant-list-container");
+
+    if (!plants.length) {
+        container.innerHTML = "<div>No plants found</div>";
+        return;
+    }
+
+    container.innerHTML = plants.map(plant => `
+        <details class="plant-row">
+            <summary>
+                <div class="plant-summary-content">
+                    <span style="flex: 2;">
+                        🌿 ${plant.common_name || plant.scientific_name}
+                    </span>
+
+                    <button
+                        style="margin-left: auto;"
+                        onclick="addPlant(${plant.id}, '${plant.common_name || plant.scientific_name}')">
+                        Add
+                    </button>
+                </div>
+            </summary>
+
+            <div class="plant-details-extra">
+                <div>Scientific: ${plant.scientific_name || "-"}</div>
+                <div>Family: ${plant.family || "-"}</div>
+            </div>
+        </details>
+    `).join("");
+}
 
 </script>
 </html>
