@@ -21,7 +21,7 @@ from src.server.database.databaseConnection import (
 from pathlib import Path
 
 from src.server.plant_functions import get_current_user_from_cookie, build_watering_status, getSpeciesById, \
-    getAllSpecies, scale_to_text
+    getAllSpecies, scale_to_text, sort_plants, search_for_species
 
 BASE_DIR = Path(__file__).resolve().parent  # src/server
 
@@ -149,7 +149,8 @@ async def register(request: Request, email: str = Form(), password: str = Form()
 ##########################
 
 @app.get("/myPlants")
-async def myPlants(request: Request):
+async def myPlants(request: Request, sort_by: str = None):
+    sort_by = sort_by or "nickname"
     token = request.cookies.get("access_token")
     current_user = get_current_user_from_cookie(request)
 
@@ -177,6 +178,8 @@ async def myPlants(request: Request):
             plant.get("last_watered"),
             humidity,
         )
+
+    plants = sort_plants(plants, sort_by)
 
     return templates.TemplateResponse(
         "myPlants.tpl",
@@ -218,13 +221,31 @@ async def myAccount(request: Request):
 
 
 @app.get("/allPlants")
-async def allPlants(request: Request):
+async def allPlants(request: Request, search: str = None):
     current_user = get_current_user_from_cookie(request)
 
     if current_user is None:
         return RedirectResponse(url="/home", status_code=303)
 
-    plants = await getAllSpecies()
+    if search:
+        plants = await search_for_species(search)
+        search_lower = search.lower()
+
+        filtered = []
+
+        for plant in plants.get("data", []):
+            name = (
+                    plant.get("common_name")
+                    or plant.get("scientific_name")
+                    or ""
+            ).lower()
+
+            if search_lower in name:
+                filtered.append(plant)
+
+        plants["data"] = filtered
+    else:
+        plants = await getAllSpecies()
 
     for plant in plants.get("data", []):
         print("DEBUG keys:", plant.keys())
@@ -232,7 +253,7 @@ async def allPlants(request: Request):
         break
 
 
-    for plant in plants.get("data", [])[:20]:  # begränsa till 20 för hastighet
+    for plant in plants.get("data", [])[:20]:
         try:
             species_detail = await getSpeciesById(plant["id"])
             data = species_detail.get("data", {})
@@ -254,6 +275,7 @@ async def allPlants(request: Request):
             "request": request,
             "plants": plants,
             "email": current_user.user.email,
+            "search": search
         },
     )
 
@@ -386,3 +408,30 @@ async def rename_plant(request: Request, row_id: int, req: RenamePlantRequest):
         return {"ok": False, "error": result}
 
     return {"ok": True}
+
+@app.get("/api/searchPlants")
+async def search_plants_api(search: str):
+    if not search:
+        return {"data": []}
+
+    plants = await search_for_species(search)
+
+    search_lower = search.lower()
+    filtered = []
+
+    for plant in plants.get("data", []):
+        name = (
+            plant.get("common_name")
+            or plant.get("scientific_name")
+            or ""
+        ).lower()
+
+        if search_lower in name:
+            filtered.append({
+                "id": plant["id"],
+                "common_name": plant.get("common_name"),
+                "scientific_name": plant.get("scientific_name"),
+                "family": plant.get("family")
+            })
+
+    return {"data": filtered[:20]}

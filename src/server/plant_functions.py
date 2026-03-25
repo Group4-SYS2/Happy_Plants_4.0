@@ -31,11 +31,11 @@ def get_current_user_from_cookie(request: Request):
     except Exception:
         return None
 
-async def searchForSpecies(searchTerm):
+async def search_for_species(search_term):
     async with httpx.AsyncClient() as client:
         resp = await client.get(
             "https://trefle.io/api/v1/plants",
-            params={"token": os.getenv("API_KEY"), "q": searchTerm},
+            params={"token": os.getenv("API_KEY"), "q": search_term},
             timeout=20.0
         )
     resp.raise_for_status()
@@ -85,6 +85,44 @@ def build_watering_status(last_watered: str, humidity_value: int | None):
         "days_since": days_since,
         "interval_days": interval_days,
     }
+
+def sort_plants(plants, sort_by):
+    if not sort_by:
+        return plants
+
+    if sort_by == "nickname":
+        # A → Z
+        return sorted(
+            plants,
+            key=lambda p: (p.get("common_name") or "").lower()
+        )
+
+    if sort_by == "species":
+        # Z → A
+        return sorted(
+            plants,
+            key=lambda p: (p.get("scientific_name") or "").lower(),
+        )
+
+    if sort_by == "last_watered":
+        # newest first
+        return sorted(
+            plants,
+            key=lambda p: parse_date(p.get("last_watered")),
+            reverse=True
+        )
+
+
+    return plants
+
+
+def parse_date(date_str):
+    if not date_str:
+        return datetime.min
+    try:
+        return datetime.strptime(date_str, "%Y-%m-%d")
+    except:
+        return datetime.min
 
 
 def scale_to_text(value):
