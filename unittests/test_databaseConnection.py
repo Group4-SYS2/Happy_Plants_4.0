@@ -37,6 +37,11 @@ class MockTable:
         self.insert_payload = payload
         return self
 
+    def update(self, payload):
+        self.calls.append(("update", payload))
+        self.insert_payload = payload
+        return self
+
     def eq(self, column, value):
         self.calls.append(("eq", column, value))
         return self
@@ -245,3 +250,17 @@ def test_change_password_returns_error_string_on_exception(mock_token_client):
     result = databaseConnection.changePassword(access_token="tkn", new_password="newpassword")
     assert isinstance(result, str)
     assert result != "success"
+
+# =========================
+# Tester: markPlantWatered
+# =========================
+def test_mark_plant_watered_sends_call(mock_token_client):
+    result = databaseConnection.markPlantWatered("user123", 0, "tkn")
+
+    assert isinstance(result.data[0], dict)
+    assert result.data[0]["plant"] == "Monstera"
+
+    assert mock_token_client.last_table_name == "user_plants"
+    assert ("eq", "user_id", "user123") in mock_token_client.last_table.calls
+    assert ("eq", "row_id", 0) in mock_token_client.last_table.calls
+    assert ("execute",) in mock_token_client.last_table.calls
