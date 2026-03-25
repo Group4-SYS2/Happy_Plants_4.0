@@ -21,7 +21,7 @@ from src.server.database.databaseConnection import (
 from pathlib import Path
 
 from src.server.plant_functions import get_current_user_from_cookie, build_watering_status, getSpeciesById, \
-    getAllSpecies, scale_to_text
+    getAllSpecies, scale_to_text, sort_plants
 
 BASE_DIR = Path(__file__).resolve().parent  # src/server
 
@@ -149,7 +149,8 @@ async def register(request: Request, email: str = Form(), password: str = Form()
 ##########################
 
 @app.get("/myPlants")
-async def myPlants(request: Request):
+async def myPlants(request: Request, sort_by: str = None):
+    sort_by = sort_by or "nickname"
     token = request.cookies.get("access_token")
     current_user = get_current_user_from_cookie(request)
 
@@ -177,6 +178,8 @@ async def myPlants(request: Request):
             plant.get("last_watered"),
             humidity,
         )
+
+        plants = sort_plants(plants, sort_by)
 
     return templates.TemplateResponse(
         "myPlants.tpl",

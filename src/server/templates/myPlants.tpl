@@ -57,11 +57,22 @@
         <button class="tool-btn">Collapse all</button>
 
         <span class="sort-label">Sort by:</span>
-        <select>
-            <option>Nickname</option>
-            <option>Species</option>
-            <option>Last Watered</option>
-        </select>
+        <form method="get" action="/myPlants">
+    <select name="sort_by" onchange="this.form.submit()">
+    <option value="nickname"
+        {% if request.query_params.get('sort_by') == 'nickname' %}selected{% endif %}>
+        Nickname
+    </option>
+    <option value="species"
+        {% if request.query_params.get('sort_by') == 'species' %}selected{% endif %}>
+        Species
+    </option>
+    <option value="last_watered"
+        {% if request.query_params.get('sort_by') == 'last_watered' %}selected{% endif %}>
+        Last Watered
+    </option>
+</select>
+</form>
     </div>
 
     <div class="plant-list-container">
