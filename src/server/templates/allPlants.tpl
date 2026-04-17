@@ -27,8 +27,8 @@
 <main>
     <div class="plant-toolbar">
         <h2>All plants</h2>
-        <button class="tool-btn">Expand all</button>
-        <button class="tool-btn">Collapse all</button>
+        <button class="tool-btn" onClick="expandAll()">Expand all</button>
+        <button class="tool-btn" onClick="collapseAll()">Collapse all</button>
 
         <input
     type="text"
@@ -170,5 +170,14 @@ function renderPlants(plants) {
     `).join("");
 }
 
+    function expandAll(){
+        document.body.querySelectorAll('details')
+            .forEach((e) => {e.setAttribute('open',true);})
+    }
+
+    function collapseAll(){
+        document.body.querySelectorAll('details')
+            .forEach((e) => {e.removeAttribute('open')})
+    }
 </script>
 </html>

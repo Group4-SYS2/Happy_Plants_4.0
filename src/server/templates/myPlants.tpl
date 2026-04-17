@@ -55,8 +55,8 @@
         <form method="post" action="/myPlants/water">
             <button class="tool-btn" type="submit">Water all plants</button>
         </form>
-        <button class="tool-btn">Expand all</button>
-        <button class="tool-btn">Collapse all</button>
+        <button class="tool-btn" onClick="expandAll()">Expand all</button>
+        <button class="tool-btn" onClick="collapseAll()">Collapse all</button>
 
         <span class="sort-label">Sort by:</span>
         <form method="get" action="/myPlants">
@@ -222,6 +222,16 @@
             console.error("Network error while renaming plant:", error);
             alert("Network/server error when renaming plant.");
         }
+    }
+
+    function expandAll(){
+        document.body.querySelectorAll('details')
+            .forEach((e) => {e.setAttribute('open',true);})
+    }
+
+    function collapseAll(){
+        document.body.querySelectorAll('details')
+            .forEach((e) => {e.removeAttribute('open')})
     }
 </script>
 </html>
