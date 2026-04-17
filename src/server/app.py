@@ -15,7 +15,7 @@ from fastapi import HTTPException
 from src.server.database.databaseConnection import (
     loginUser, registerUser, initialize, signOutUser,
     getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, markPlantWatered,
-    renameUserPlant
+    renameUserPlant, markAllPlantsWatered
 )
 
 from pathlib import Path
@@ -380,6 +380,26 @@ async def water_plant(request: Request, row_id: int):
     print("user:", user_id)
 
     result = markPlantWatered(user_id, row_id, token)
+
+    print("DB result:", result)
+
+    return RedirectResponse(url="/myPlants", status_code=303)
+
+@app.post("/myPlants/water")
+async def water_all_plants(request: Request):
+    print(" WATERALL ENDPOINT HIT")
+
+    token = request.cookies.get("access_token")
+    current_user = get_current_user_from_cookie(request)
+
+    if current_user is None:
+        print(" no user")
+        raise HTTPException(status_code=401)
+
+    user_id = current_user.user.id
+    print("user:", user_id)
+
+    result = markAllPlantsWatered(user_id, token)
 
     print("DB result:", result)
 

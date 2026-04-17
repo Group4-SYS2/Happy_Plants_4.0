@@ -52,7 +52,9 @@
 <main>
     <div class="plant-toolbar">
         <h2>Your plants</h2>
-        <button class="tool-btn">Water all plants</button>
+        <form method="post" action="/myPlants/water">
+            <button class="tool-btn" type="submit">Water all plants</button>
+        </form>
         <button class="tool-btn">Expand all</button>
         <button class="tool-btn">Collapse all</button>
 
