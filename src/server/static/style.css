@@ -129,12 +129,6 @@ select {
     border: 2px solid #333;
     border-radius: 10px;
     overflow: scroll;
-    background-image: repeating-linear-gradient(
-            var(--list-bg),
-            var(--list-bg) 40px,
-            var(--list-stripe) 40px,
-            var(--list-stripe) 80px
-    );
 }
 
 .plant-row {

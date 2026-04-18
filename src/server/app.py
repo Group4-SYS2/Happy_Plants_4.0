@@ -279,6 +279,35 @@ async def allPlants(request: Request, search: str = None):
         },
     )
 
+@app.get("/getAllPlants")
+async def getAllPlants(request: Request):
+
+    plants = await getAllSpecies()
+
+    for plant in plants.get("data", []):
+        print("DEBUG keys:", plant.keys())
+        print("DEBUG growth:", plant.get("growth"))
+        break
+
+
+    for plant in plants.get("data", [])[:20]:
+        try:
+            species_detail = await getSpeciesById(plant["id"])
+            data = species_detail.get("data", {})
+            growth = data.get("growth") or {}
+
+            light_value = growth.get("light")
+            water_value = growth.get("soil_humidity") or growth.get("atmospheric_humidity")
+
+        except Exception:
+            light_value = None
+            water_value = None
+
+        plant["light_text"] = scale_to_text(light_value)
+        plant["water_text"] = scale_to_text(water_value)
+
+    return plants
+
 
 # A class is created so that the /account/change_password endpoint can recognize the data sent to it
 # by using this class as a "base model"

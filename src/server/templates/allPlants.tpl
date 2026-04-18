@@ -45,34 +45,6 @@
 
     <div class="plant-list-container">
         {% if plants %}
-        {% for plant in plants.data %}
-        <details class="plant-row" id="plant-{{ plant.id }}" style="background-color: {{ '#E8F5E9' if plant.id % 2 == 0 else '#E8F5E9' }};">
-            <summary>
-                <div class="plant-summary-content">
-                    <span style="flex: 2;">
-                        🌿
-                        {{ plant.common_name if plant.common_name else plant.scientific_name }}
-                    </span>
-                    <button onclick="addPlant({{ plant.id }}, '{{ (plant.common_name or plant.scientific_name) | e }}')">Add</button>
-                </div>
-            </summary>
-
-            <div class="plant-details-extra">
-                <div><span class="detail-label">Scientific name:</span> {{ plant.scientific_name }}</div>
-                <div><span class="detail-label">Family:</span> {{ plant.family }}</div>
-                <div>
-                    <span class="detail-label">Light need:</span>
-                    {{ plant.light_text }}
-                </div>
-
-                <div>
-                    <span class="detail-label">Water need:</span>
-                    {{ plant.water_text }}
-                </div>
-
-            </div>
-        </details>
-        {% endfor %}
         {% else %}
         <div class="loading-state">
             <span>No plants found!</span>
@@ -84,7 +56,15 @@
 </body>
 
 <script>
-  async function addPlant(plantId, commonName) {
+    let plants;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        plants = await getPlants();
+        console.log(plants);
+        renderPlants("");
+    });
+
+    async function addPlant(plantId, commonName) {
       try {
           const response = await fetch(`/myPlants/addPlant`, {
               method: 'POST',
@@ -107,68 +87,62 @@
           console.error('Network error while adding plant:', error);
           alert("Network/server error when adding plant.");
       }
-  }
-
-  let timeout = null;
-
-document.getElementById("searchInput").addEventListener("input", function() {
-    const query = this.value;
-
-    clearTimeout(timeout);
-
-    timeout = setTimeout(() => {
-        searchPlants(query);
-    }, 300);
-});
-
-async function searchPlants(query) {
-    if (!query) {
-    location.reload();
-    return;
-}
-
-    try {
-        const response = await fetch(`/api/searchPlants?search=${encodeURIComponent(query)}`);
-        const data = await response.json();
-
-        renderPlants(data.data);
-
-    } catch (error) {
-        console.error("Search error:", error);
-    }
-}
-
-function renderPlants(plants) {
-    const container = document.querySelector(".plant-list-container");
-
-    if (!plants.length) {
-        container.innerHTML = "<div>No plants found</div>";
-        return;
     }
 
-    container.innerHTML = plants.map(plant => `
-        <details class="plant-row">
-            <summary>
-                <div class="plant-summary-content">
-                    <span style="flex: 2;">
-                        🌿 ${plant.common_name || plant.scientific_name}
-                    </span>
+    document.getElementById("searchInput").addEventListener("input", function() {
+        const query = this.value;
+        renderPlants(query);
+    });
 
-                    <button
-                        style="margin-left: auto;"
-                        onclick="addPlant(${plant.id}, '${plant.common_name || plant.scientific_name}')">
-                        Add
-                    </button>
+    async function getPlants() {
+        try {
+            const response = await fetch(`/getAllPlants`);
+            const data = await response.json();
+
+            return data.data;
+
+        } catch (error) {
+            console.error("Search error:", error);
+        }
+    }
+
+    function renderPlants(searchTerm) {
+        const container = document.querySelector(".plant-list-container");
+
+        if (!plants.length) {
+            container.innerHTML = "<div>No plants found</div>";
+            return;
+        }
+
+        container.innerHTML = plants.filter(plant => plant.common_name.toLowerCase().includes(searchTerm.toLowerCase())).map(plant => `
+            <details class="plant-row" id="plant-${plant.id}" style="background-color: #E8F5E9;">
+                <summary>
+                    <div class="plant-summary-content">
+                        <span style="flex: 2;">
+                            🌿
+                            ${(plant.common_name) ? plant.common_name : plant.scientific_name}
+                        </span>
+                        <button onclick="addPlant(${plant.id}, ' ${(plant.common_name) ? plant.common_name : plant.scientific_name}')">Add</button>
+                    </div>
+                </summary>
+
+                <div class="plant-details-extra">
+                    <div><span class="detail-label">Scientific name:</span> ${plant.scientific_name}</div>
+                    <div><span class="detail-label">Family:</span> ${plant.family}</div>
+                    <div>
+                        <span class="detail-label">Light need:</span>
+                        ${plant.light_text}
+                    </div>
+
+                    <div>
+                        <span class="detail-label">Water need:</span>
+                        ${plant.water_text}
+                    </div>
+
                 </div>
-            </summary>
-
-            <div class="plant-details-extra">
-                <div>Scientific: ${plant.scientific_name || "-"}</div>
-                <div>Family: ${plant.family || "-"}</div>
-            </div>
-        </details>
-    `).join("");
-}
+            </details>
+        `).join("");
+    }
 
     function expandAll(){
         document.body.querySelectorAll('details')
