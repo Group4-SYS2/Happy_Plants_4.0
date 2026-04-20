@@ -1,3 +1,4 @@
+import json
 import os
 
 import requests
@@ -273,7 +274,7 @@ async def allPlants(request: Request, search: str = None):
         "allPlants.tpl",
         {
             "request": request,
-            "plants": plants,
+            "plants": json.dumps(plants),
             "email": current_user.user.email,
             "search": search
         },
@@ -306,7 +307,7 @@ async def getAllPlants(request: Request):
         plant["light_text"] = scale_to_text(light_value)
         plant["water_text"] = scale_to_text(water_value)
 
-    return plants
+    return json.dumps(plants)
 
 
 # A class is created so that the /account/change_password endpoint can recognize the data sent to it

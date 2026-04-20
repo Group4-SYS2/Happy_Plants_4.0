@@ -6,6 +6,10 @@
     <title>My Happy Plants - All Plants</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
+
+    <script type="text/javascript">
+        let plants = JSON.parse({{ plants | tojson }}).data;
+    </script>
 </head>
 
 <body>
@@ -56,10 +60,7 @@
 </body>
 
 <script>
-    let plants;
-
     document.addEventListener('DOMContentLoaded', async () => {
-        plants = await getPlants();
         console.log(plants);
         renderPlants("");
     });
@@ -93,18 +94,6 @@
         const query = this.value;
         renderPlants(query);
     });
-
-    async function getPlants() {
-        try {
-            const response = await fetch(`/getAllPlants`);
-            const data = await response.json();
-
-            return data.data;
-
-        } catch (error) {
-            console.error("Search error:", error);
-        }
-    }
 
     function renderPlants(searchTerm) {
         const container = document.querySelector(".plant-list-container");
