@@ -40,7 +40,7 @@
     placeholder="Search plants..."
 >
         <span class="sort-label">Sort by:</span>
-        <select>
+        <select id="sort-label">
             <option>Common name</option>
             <option>Scientific name</option>
             <option>Something else</option>
@@ -95,12 +95,27 @@
         renderPlants(query);
     });
 
+    document.getElementById("sort-label").addEventListener("input", function() {
+        renderPlants(document.getElementById("searchInput").value);
+    });
+
     function renderPlants(searchTerm) {
         const container = document.querySelector(".plant-list-container");
 
         if (!plants.length) {
             container.innerHTML = "<div>No plants found</div>";
             return;
+        }
+
+        const sortDropDown = document.getElementById("sort-label");
+        if(sortDropDown.value === "Common name") {
+            plants = plants.sort(sort_by("common_name"));
+        }
+        else if(sortDropDown.value === "Scientific name") {
+            plants = plants.sort(sort_by("scientific_name"));
+        }
+        else{
+            plants = plants.sort(sort_by("id"));
         }
 
         container.innerHTML = plants.filter(plant => plant.common_name.toLowerCase().includes(searchTerm.toLowerCase())).map(plant => `
@@ -141,6 +156,15 @@
     function collapseAll(){
         document.body.querySelectorAll('details')
             .forEach((e) => {e.removeAttribute('open')})
+    }
+
+    const sort_by = (field) => {
+        const key = function(x) {
+            return x[field]
+        };
+        return function(a, b) {
+            return a = key(a), b = key(b), ((a > b) - (b > a));
+        }
     }
 </script>
 </html>
