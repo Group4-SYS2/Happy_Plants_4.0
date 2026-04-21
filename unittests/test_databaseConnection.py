@@ -201,6 +201,26 @@ def test_add_user_plant_inserts_payload(mock_token_client, mocker):
     assert ("execute",) in mock_token_client.last_table.calls
 
 # =========================
+# Tester: addUserPlant (Error case)
+# =========================
+def test_add_user_plant_returns_error_on_exception(mocker):
+    class ErrorClient(MockSupabaseClient):
+        def table(self, name):
+            t = super().table(name)
+
+            def boom():
+                raise Exception("insert failed")
+
+            t.execute = boom
+            return t
+
+    mocker.patch.object(databaseConnection, "get_client_for_token", return_value=ErrorClient())
+
+    result = databaseConnection.addUserPlant("user123", 1, "Plant", "tkn")
+
+    assert isinstance(result, str)
+
+# =========================
 # Tester: registerUser
 # =========================
 def test_register_user_returns_success(mock_admin_client):
@@ -264,3 +284,40 @@ def test_mark_plant_watered_sends_call(mock_token_client):
     assert ("eq", "user_id", "user123") in mock_token_client.last_table.calls
     assert ("eq", "row_id", 0) in mock_token_client.last_table.calls
     assert ("execute",) in mock_token_client.last_table.calls
+
+# =========================
+# Tester: Login with invalid credentials 
+# =========================
+
+def test_login_user_invalid_credentials_returns_none(mock_admin_client):
+    mock_admin_client.auth.raise_on.add("sign_in_with_password")
+    result = databaseConnection.loginUser("wrong@mail.com", "wrong")
+    assert result is None
+
+# =========================
+# Tester: markAllPlantsWatered
+# =========================
+def test_mark_all_plants_watered_success(mock_token_client):
+    result = databaseConnection.markAllPlantsWatered("user123", "tkn")
+
+    assert mock_token_client.last_table_name == "user_plants"
+    assert ("update", {"last_watered": str(date.today())}) in mock_token_client.last_table.calls
+
+# =========================
+# Tester: renamePlant
+# =========================
+def test_rename_user_plant_success(mock_token_client):
+    result = databaseConnection.renameUserPlant("user123", 1, "NewName", "tkn")
+
+    assert mock_token_client.last_table_name == "user_plants"
+    assert ("update", {"common_name": "NewName"}) in mock_token_client.last_table.calls
+
+# =========================
+# Tester: deleteUserPlant
+# =========================
+def test_delete_user_plant_by_row_id_success(mock_token_client):
+    result, err = databaseConnection.deleteUserPlantByRowId(1, "user123", "tkn")
+
+    assert err is None
+    assert isinstance(result, list)
+
