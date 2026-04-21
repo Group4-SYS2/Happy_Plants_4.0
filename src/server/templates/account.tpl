@@ -157,7 +157,7 @@
 
     <a href="/logout" class="sign-out-btn">Sign out</a>
     <div class="user-profile">
-        <img src="https://via.placeholder.com/50" class="profile-pic">
+        <img src="https://wallpapers.com/images/high/anonymous-profile-silhouette-b714qekh29tu1anb.png" class="profile-pic">
         <span class="user-email">{{email}}</span>
     </div>
 </nav>
@@ -167,7 +167,7 @@
         <h2>Account Settings</h2>
 
         <div class="profile-section">
-            <img src="https://via.placeholder.com/150" class="large-profile-pic" alt="User Profile">
+            <img src="https://wallpapers.com/images/high/anonymous-profile-silhouette-b714qekh29tu1anb.png" class="large-profile-pic" alt="User Profile">
             <button class="btn-action" style="background-color: #b8e2b8; font-size: 0.8rem; padding: 5px 15px; width: auto; box-shadow: 0 2px #4e944e;">Update Photo</button>
         </div>
 

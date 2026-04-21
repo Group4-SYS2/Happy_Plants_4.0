@@ -81,7 +81,7 @@
 
     <a href="/logout" class="sign-out-btn">Sign out</a>
     <div class="user-profile">
-        <img src="https://via.placeholder.com/50" class="profile-pic">
+        <img src="https://wallpapers.com/images/high/anonymous-profile-silhouette-b714qekh29tu1anb.png" class="profile-pic">
         <span class="user-email">{{email}}</span>
     </div>
 </nav>
