@@ -90,7 +90,7 @@ class MockSupabaseClient:
         self.auth = MockAuth()
         self.last_table_name = None
         self.last_table = None
-        self.table_data = table_data if table_data is not None else [{"plant": "Monstera"}]
+        self.table_data = table_data if table_data is not None else [{"plant": "Monstera", "last_watered": "2026-01-01"}]
 
     def table(self, name):
        self.last_table_name = name
@@ -321,3 +321,11 @@ def test_delete_user_plant_by_row_id_success(mock_token_client):
     assert err is None
     assert isinstance(result, list)
 
+def test_mark_plant_watered_sets_date(mock_token_client):
+    result = databaseConnection.markPlantWatered("user123", 0, "tkn")
+
+    print(str(date.today()))
+
+    assert isinstance(result.data[0], dict)
+    #assert result.data[0]["plant"] == "Monstera"
+    assert result.data[0]["last_watered"] == str(date.today())
