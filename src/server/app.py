@@ -16,7 +16,7 @@ from fastapi import HTTPException
 from src.server.database.databaseConnection import (
     loginUser, registerUser, initialize, signOutUser,
     getUserPlants, deleteUserPlantByRowId, changePassword, addUserPlant, markPlantWatered,
-    renameUserPlant, markAllPlantsWatered
+    renameUserPlant, markAllPlantsWatered, deleteUserAccount
 )
 
 from pathlib import Path
@@ -207,6 +207,29 @@ async def myPlantDelete(request: Request, row_id: int):
         raise HTTPException(status_code=404, detail="No row deleted (wrong row_id or blocked by RLS).")
 
     return {"ok": True, "deleted": len(deleted_rows)}
+
+@app.delete("/api/deleteUser")
+async def deleteUser(request: Request):
+    token = request.cookies.get("access_token")
+    current_user = get_current_user_from_cookie(request)
+
+    if current_user is None or token is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_id = current_user.user.id
+
+    success, err = deleteUserAccount(user_id=user_id)
+
+    if err:
+        raise HTTPException(status_code=500, detail=err)
+
+    if not success:
+        raise HTTPException(status_code=404, detail="No account deleted.")
+
+    response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    response.delete_cookie("access_token")
+    return response
+
 
 
 @app.get("/account")

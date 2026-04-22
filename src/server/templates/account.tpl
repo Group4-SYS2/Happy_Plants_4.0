@@ -176,8 +176,9 @@
             <div class="info-value">{{email}}</div>
         </div>
 
-        <div class="info-group">
-            <button class="btn-action" onclick="openModal()">Change Password</button>
+        <div class="info-group" style="display:flex; flex-direction:column; row-gap:20px;">
+            <button class="btn-action" style="width:100%" onclick="openModal()">Change Password</button>
+            <button class="btn-action" style="width:100%" onclick="deleteUser()">Delete account</button>
         </div>
 
         <div class="plant-decoration">🌿</div>
@@ -239,6 +240,19 @@
         } catch (error) {
             console.error('Network error:', error);
             alert("Network error. Is the server running?");
+        }
+    }
+
+    async function deleteUser() {
+        try {
+            const response = await fetch(`/api/deleteUser`, {
+                method: 'DELETE'
+            });
+
+            window.location.reload();
+
+        } catch (error) {
+            console.error("Search error:", error);
         }
     }
 </script>

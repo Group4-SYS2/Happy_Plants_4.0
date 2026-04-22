@@ -17,6 +17,7 @@ load_dotenv()
 # Here we fetch the environment variables from our ..env file.
 supabaseKey = os.getenv('SUPABASEKEY')
 supabaseURL = os.getenv('SUPABASEURL')
+supabaseElevatedKey = os.getenv('SUPABASEELEVATEDKEY')
 
 # Here we establish our supabase client that we can use to
 # communicate with the database.
@@ -24,6 +25,10 @@ supabaseURL = os.getenv('SUPABASEURL')
 def get_admin_client() -> Client:
     """Returnerar en Supabase admin-klient"""
     return create_client(supabaseURL, supabaseKey)
+
+def get_elevated_admin_client() -> Client:
+    """Returnerar en Supabase admin-klient"""
+    return create_client(supabaseURL, supabaseElevatedKey)
   
 def initialize():
     if not supabaseKey or not supabaseURL:
@@ -80,6 +85,15 @@ def deleteUserPlantByRowId(row_id, user_id, token):
         return response.data, None
     except Exception as e:
         print("Error deleting plant:", e)
+        return None, str(e)
+
+def deleteUserAccount(user_id):
+    client = get_elevated_admin_client()
+    try:
+        client.auth.admin.delete_user(user_id)
+        return True, None
+    except Exception as e:
+        print("Error deleting account:", e)
         return None, str(e)
 
 
